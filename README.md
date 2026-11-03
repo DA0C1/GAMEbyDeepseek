@@ -2,6 +2,8 @@
 
 山海残卷 · SCROLLS OF SHANHAI，水墨风格的卡牌构筑 roguelite。
 
+当前为 **v3.9.4「校册」修复与 AI 测试版**（2026-11-03）。本次修复牌组关闭提示与布局、怪物死亡残影、浮层期间误触、战后法宝结算，并增加独立 AI 测试入口。玩家说明与历史改动见 [README.txt](山海残卷/README.txt)。
+
 完整源码、美术、音频与 Phaser 运行时位于 `山海残卷/`。下载整个仓库后，双击该目录中的 `启动游戏.bat`，或安装 Node.js 22 及以上版本后运行：
 
 ```sh
@@ -18,10 +20,14 @@ npm ci
 npm test
 npm run test:browser
 npm run build:single
+npm run build:ai
+npm run test:portable
 ```
 
 浏览器回归检查使用独立的无头 Edge，不连接正在玩的浏览器；也可通过 `EDGE_PATH` 指定 Chromium 系浏览器路径。截图保存在 `test-artifacts/`，打包结果为 `dist/山海残卷_单文件版.html`，包含本地图片、音乐和引擎，可独立打开。
 
 本次修复与验证记录见 [游玩反馈](山海残卷/docs/游玩反馈.md)。归档未包含旧版 `t1`～`t26` 等历史测试，本仓库提供针对本次问题的新回归检查。
 
-AI 测试版：双击 `山海残卷/启动AI测试版.bat`，或启动服务后访问 `/ai-test.html`。提供可读状态、具名操作按钮、固定规则种子、问题复现入口和日志导出。用法见 [AI 测试说明](山海残卷/docs/AI测试.md)；`npm run build:ai` 可生成独立单文件版本。
+AI 测试版：双击 `山海残卷/启动AI测试版.bat`，访问 http://localhost:8898/ai-test.html；也可在自行启动的服务中访问 `/ai-test.html`。提供可读状态、具名操作按钮、固定规则种子、问题复现入口和日志导出。用法见 [AI 测试说明](山海残卷/docs/AI测试.md)；`npm run build:ai` 可生成 `dist/山海残卷_AI测试版.html`。
+
+本次 6 项逻辑测试、9 组浏览器检查及普通版、AI 版单文件验证均通过。旧 EXE 未重新打包；本地完整归档中的两个单文件 HTML 和 `03_源代码` 已同步更新，AI 启动器使用 http://localhost:8002/。
