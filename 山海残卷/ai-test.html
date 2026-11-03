@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>山海残卷 · AI 测试版</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  #stage { right: 390px; }
+  #game { width: min(calc(100vw - 390px), calc(100vh * 16 / 9)); }
+  #ai-panel { position: fixed; inset: 0 0 0 auto; width: 358px; padding: 16px; overflow: auto; background: #f5eedf; color: #29231c; user-select: text; touch-action: auto; border-left: 2px solid #b98f3f; }
+  #ai-panel h1 { margin: 0 0 8px; font-size: 22px; }
+  #ai-panel h2 { margin: 20px 0 8px; font-size: 16px; }
+  #ai-panel p { line-height: 1.5; font-size: 13px; }
+  #ai-panel button, #ai-panel input { box-sizing: border-box; border: 1px solid #ad9472; border-radius: 4px; padding: 8px; background: #fffaf0; color: #29231c; font: inherit; }
+  #ai-panel button { cursor: pointer; text-align: left; }
+  #ai-panel button:focus-visible { outline: 3px solid #a8332a; }
+  #ai-panel button:disabled { opacity: .5; cursor: default; }
+  .ai-actions { display: grid; gap: 6px; }
+  #ai-panel select { width: 100%; padding: 8px; font: inherit; }
+  #ai-status { padding: 8px; background: #e8ddc8; min-height: 18px; }
+  #ai-state { white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.5 Consolas, monospace; }
+  @media (max-width: 800px) { #stage { right: 300px; } #game { width: calc(100vw - 300px); } #ai-panel { width: 268px; } }
+</style>
+</head>
+<body>
+<div id="stage"><div id="game"></div><div id="veil"><span>展卷…</span></div></div>
+<aside id="ai-panel" aria-label="AI 测试面板">
+  <h1>AI 测试版</h1>
+  <p>文字状态与具名按钮对应游戏操作。复现入口会新建测试局；请在独立端口使用，避免覆盖普通版的图鉴记录。</p>
+  <label for="ai-seed">规则随机种子</label>
+  <input id="ai-seed" type="number" min="0" max="4294967295" value="20261103">
+  <h2>新建测试场景</h2>
+  <div id="ai-scenarios" class="ai-actions"></div>
+  <p id="ai-status" role="status" aria-live="polite">等待游戏加载…</p>
+  <h2>当前操作</h2><div id="ai-controls" class="ai-actions"></div>
+  <section id="ai-target-section" hidden><h2>攻击目标</h2><select id="ai-target" aria-label="攻击目标"></select></section>
+  <h2>手牌</h2><div id="ai-cards" class="ai-actions"></div>
+  <h2>可走路线</h2><div id="ai-routes" class="ai-actions"></div>
+  <h2>当前界面按钮</h2><div id="ai-buttons" class="ai-actions"></div>
+  <h2>可读取状态</h2><pre id="ai-state" aria-label="游戏状态"></pre>
+  <button id="ai-export">导出本页测试日志</button>
+</aside>
+<div id="errlog" aria-hidden="true"></div>
+<script src="vendor/phaser.min.js"></script>
+<script type="module" src="src/testing/ai-entry.js"></script>
+</body>
+</html>

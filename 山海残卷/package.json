@@ -1,0 +1,22 @@
+{
+  "name": "shanhaiscrolls",
+  "version": "1.0.0",
+  "description": "山海残卷 · SCROLLS OF SHANHAI",
+  "type": "module",
+  "main": "index.html",
+  "scripts": {
+    "start": "node tools/serve.cjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node tools/browser-check.cjs",
+    "test:portable": "node tools/portable-check.cjs",
+    "build:single": "node tools/build-single.cjs",
+    "build:ai": "node tools/build-single.cjs --ai"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "puppeteer-core": "^23.11.1"
+  }
+}
