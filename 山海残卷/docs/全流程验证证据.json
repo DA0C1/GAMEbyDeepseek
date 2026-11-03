@@ -1,0 +1,4702 @@
+{
+  "gameVersion": "8ebebcb320c7f02e9372559c1b7945fb80e25c46",
+  "completedUtc": "2026-11-03T18:24:40.6249432Z",
+  "conditions": {
+    "url": "http://localhost:8002/",
+    "operator": "Terra / xhigh",
+    "seed": null,
+    "ascension": 0,
+    "initialTitleObserved": {
+      "runs": 0,
+      "wins": 0,
+      "bestScore": 0
+    }
+  },
+  "result": {
+    "completedBosses": 3,
+    "bossTurns": [
+      {
+        "name": "烛龙",
+        "turn": 4,
+        "evidence": "山海残卷_AI测试记录 (2)-0f5812adf61c.json"
+      },
+      {
+        "name": "刑天",
+        "turn": 3,
+        "evidence": "山海残卷_AI测试记录 (11)-8693ba801300.json"
+      },
+      {
+        "name": "帝江",
+        "turn": 4,
+        "evidence": "山海残卷_AI测试记录 (15)-242d445017bc.json"
+      }
+    ],
+    "ending": "代卷",
+    "pages": "你已收集 6 / 9 页残卷",
+    "score": 9030,
+    "returnedTitle": {
+      "runs": 1,
+      "wins": 1,
+      "bestScore": 9030,
+      "bestDepth": 37,
+      "ascension": 1,
+      "text": "入卷 1 次    ·    破卷 1 次    ·    最远 第 37 层    ·    最佳 9030 分    ·    图鉴 29%"
+    }
+  },
+  "limitations": [
+    "导出保存检查点最终快照与最近200动作；本文件通过重叠导出合并完整操作序列。",
+    "中途一死一活的死亡背景由Terra实时截图观察，截图没有另存；该视觉结论不能由最终胜利快照独立复核。",
+    "初始标题基线来自开局界面观测；首份原始导出为首战胜利。",
+    "checkpoint sha256对应本地保留的完整原始导出；本文件只保留其状态，避免重复操作序列。"
+  ],
+  "audit": {
+    "auditedUtc": "2026-11-03T18:24:59.180Z",
+    "checkpointCount": 20,
+    "uniqueActionCount": 240,
+    "firstAction": {
+      "at": "2026-11-03T16:08:12.256Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-3"
+      },
+      "scene": "Title"
+    },
+    "lastAction": {
+      "at": "2026-11-03T18:24:05.690Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-240"
+      },
+      "scene": "Ending"
+    },
+    "failureCount": 0,
+    "testActionCount": 0,
+    "initialActionIsNormalTitleUI": true,
+    "allSeedsNull": true,
+    "continuityGaps": [],
+    "actionConflicts": []
+  },
+  "actions": [
+    {
+      "at": "2026-11-03T16:08:12.256Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-3"
+      },
+      "scene": "Title"
+    },
+    {
+      "at": "2026-11-03T16:09:54.119Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:10:31.301Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:10:33.309Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:10:35.314Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:10:37.320Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:10:39.338Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:10:41.342Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:10:44.370Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:10:46.377Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:10:48.389Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:10:50.396Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:10:52.414Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:10:54.424Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:10:56.425Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:10:58.432Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:15:08.946Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:15:40.889Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:16:45.141Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-6"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:21:18.487Z",
+      "action": {
+        "type": "route",
+        "id": 0
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T16:24:06.732Z",
+      "action": {
+        "type": "play_card",
+        "index": 2,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T16:24:40.688Z",
+      "action": {
+        "type": "play_card",
+        "index": 2,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T16:25:15.610Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T16:25:49.531Z",
+      "action": {
+        "type": "end_turn"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T16:27:21.940Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T16:32:08.366Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-17"
+      },
+      "scene": "Reward"
+    },
+    {
+      "at": "2026-11-03T16:33:50.014Z",
+      "action": {
+        "type": "route",
+        "id": 2
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T16:36:39.270Z",
+      "action": {
+        "type": "continue_scene"
+      },
+      "scene": "Event"
+    },
+    {
+      "at": "2026-11-03T16:38:19.823Z",
+      "action": {
+        "type": "route",
+        "id": 5
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T16:40:32.901Z",
+      "action": {
+        "type": "continue_scene"
+      },
+      "scene": "Event"
+    },
+    {
+      "at": "2026-11-03T16:43:16.145Z",
+      "action": {
+        "type": "route",
+        "id": 8
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T16:43:50.064Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-32"
+      },
+      "scene": "Reward"
+    },
+    {
+      "at": "2026-11-03T16:45:16.454Z",
+      "action": {
+        "type": "route",
+        "id": 11
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T16:45:49.333Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-35"
+      },
+      "scene": "Reward"
+    },
+    {
+      "at": "2026-11-03T16:47:31.868Z",
+      "action": {
+        "type": "route",
+        "id": 14
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T16:48:39.144Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-38"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T16:49:53.441Z",
+      "action": {
+        "type": "route",
+        "id": 17
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T16:50:28.371Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-43"
+      },
+      "scene": "Shop"
+    },
+    {
+      "at": "2026-11-03T16:51:45.716Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-41"
+      },
+      "scene": "Shop"
+    },
+    {
+      "at": "2026-11-03T16:52:57.014Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-45"
+      },
+      "scene": "Shop"
+    },
+    {
+      "at": "2026-11-03T16:54:37.555Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-46"
+      },
+      "scene": "Shop"
+    },
+    {
+      "at": "2026-11-03T16:56:58.049Z",
+      "action": {
+        "type": "route",
+        "id": 18
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T16:58:11.737Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T16:58:13.755Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T16:58:15.771Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T16:58:17.797Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T16:58:19.815Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T16:58:56.767Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T16:58:58.780Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T16:59:00.793Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T16:59:35.782Z",
+      "action": {
+        "type": "potion",
+        "index": 0
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T16:59:37.792Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T16:59:39.796Z",
+      "action": {
+        "type": "play_card",
+        "index": 2,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T16:59:41.807Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:00:22.776Z",
+      "action": {
+        "type": "end_turn"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:02:51.885Z",
+      "action": {
+        "type": "play_card",
+        "index": 2,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:02:53.889Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:02:55.888Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:02:57.891Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:03:40.928Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:04:18.889Z",
+      "action": {
+        "type": "end_turn"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:08:10.851Z",
+      "action": {
+        "type": "play_card",
+        "index": 4,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:08:12.868Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:08:14.884Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:09:08.082Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:09:59.212Z",
+      "action": {
+        "type": "end_turn"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:12:37.437Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:12:39.452Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:12:41.464Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:12:43.481Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:16:39.678Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:16:41.689Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:16:43.706Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:16:45.720Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:16:47.737Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:17:23.667Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:19:10.305Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-59"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T17:20:57.524Z",
+      "action": {
+        "type": "open_deck"
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T17:21:34.464Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-62"
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T17:22:45.211Z",
+      "action": {
+        "type": "route",
+        "id": 0
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T17:24:26.825Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:24:28.838Z",
+      "action": {
+        "type": "play_card",
+        "index": 3,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:24:30.861Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:25:03.803Z",
+      "action": {
+        "type": "end_turn"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:27:06.583Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:27:08.594Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:27:10.619Z",
+      "action": {
+        "type": "play_card",
+        "index": 2,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:27:12.635Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f1"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:27:39.997Z",
+      "action": {
+        "type": "play_card",
+        "index": 3,
+        "target": "f1"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:28:43.415Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-74"
+      },
+      "scene": "Reward"
+    },
+    {
+      "at": "2026-11-03T17:29:13.268Z",
+      "action": {
+        "type": "route",
+        "id": 2
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T17:30:27.848Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:30:29.864Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:30:31.866Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:30:33.879Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:30:40.559Z",
+      "action": {
+        "type": "end_turn"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:32:12.057Z",
+      "action": {
+        "type": "play_card",
+        "index": 3,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:32:14.062Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:32:16.075Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:34:01.183Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-89"
+      },
+      "scene": "Reward"
+    },
+    {
+      "at": "2026-11-03T17:34:36.095Z",
+      "action": {
+        "type": "route",
+        "id": 5
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T17:34:43.795Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-93"
+      },
+      "scene": "Reward"
+    },
+    {
+      "at": "2026-11-03T17:35:25.790Z",
+      "action": {
+        "type": "route",
+        "id": 8
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T17:35:34.421Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-97"
+      },
+      "scene": "Event"
+    },
+    {
+      "at": "2026-11-03T17:35:57.198Z",
+      "action": {
+        "type": "continue_scene"
+      },
+      "scene": "Event"
+    },
+    {
+      "at": "2026-11-03T17:36:09.858Z",
+      "action": {
+        "type": "route",
+        "id": 11
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T17:36:24.539Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-101"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T17:37:02.513Z",
+      "action": {
+        "type": "route",
+        "id": 14
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T17:37:10.213Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-104"
+      },
+      "scene": "Event"
+    },
+    {
+      "at": "2026-11-03T17:37:31.021Z",
+      "action": {
+        "type": "continue_scene"
+      },
+      "scene": "Event"
+    },
+    {
+      "at": "2026-11-03T17:37:48.763Z",
+      "action": {
+        "type": "route",
+        "id": 16
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T17:37:57.528Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-110"
+      },
+      "scene": "Rest"
+    },
+    {
+      "at": "2026-11-03T17:38:20.483Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-121"
+      },
+      "scene": "Rest"
+    },
+    {
+      "at": "2026-11-03T17:39:51.978Z",
+      "action": {
+        "type": "route",
+        "id": 18
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T17:40:25.380Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:40:27.387Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:40:29.394Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:40:31.399Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:40:33.422Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:40:43.119Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:40:45.136Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:40:47.149Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:41:00.193Z",
+      "action": {
+        "type": "play_card",
+        "index": 3,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:41:02.197Z",
+      "action": {
+        "type": "play_card",
+        "index": 3,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:41:04.221Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:41:12.893Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:41:20.589Z",
+      "action": {
+        "type": "end_turn"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:42:44.009Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:42:46.014Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:42:48.031Z",
+      "action": {
+        "type": "play_card",
+        "index": 3,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:42:50.045Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:43:04.807Z",
+      "action": {
+        "type": "play_card",
+        "index": 2,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:43:12.466Z",
+      "action": {
+        "type": "end_turn"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:44:51.729Z",
+      "action": {
+        "type": "play_card",
+        "index": 2,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:44:53.727Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:44:55.731Z",
+      "action": {
+        "type": "play_card",
+        "index": 4,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:44:57.747Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:45:08.437Z",
+      "action": {
+        "type": "play_card",
+        "index": 3,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:46:23.369Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:46:25.383Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:46:27.387Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:46:29.401Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:46:31.417Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:46:39.088Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:47:03.586Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-137"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T17:47:13.246Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-137"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T17:47:35.085Z",
+      "action": {
+        "type": "route",
+        "id": 0
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T17:48:57.440Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:48:59.456Z",
+      "action": {
+        "type": "play_card",
+        "index": 2,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:49:01.462Z",
+      "action": {
+        "type": "play_card",
+        "index": 3,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:49:03.464Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f1"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:49:13.144Z",
+      "action": {
+        "type": "play_card",
+        "index": 3,
+        "target": "f1"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:49:22.883Z",
+      "action": {
+        "type": "play_card",
+        "index": 4,
+        "target": "f2"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:49:30.553Z",
+      "action": {
+        "type": "end_turn"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:51:02.091Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f2"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:51:04.105Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f2"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:52:57.452Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-151"
+      },
+      "scene": "Reward"
+    },
+    {
+      "at": "2026-11-03T17:53:27.327Z",
+      "action": {
+        "type": "route",
+        "id": 2
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T17:54:42.634Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:54:44.650Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:54:46.662Z",
+      "action": {
+        "type": "play_card",
+        "index": 2,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:54:56.368Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:54:58.386Z",
+      "action": {
+        "type": "play_card",
+        "index": 2,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:55:10.092Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:55:19.795Z",
+      "action": {
+        "type": "end_turn"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:57:30.689Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:57:32.704Z",
+      "action": {
+        "type": "play_card",
+        "index": 3,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:57:34.725Z",
+      "action": {
+        "type": "play_card",
+        "index": 3,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:57:44.400Z",
+      "action": {
+        "type": "play_card",
+        "index": 4,
+        "target": "f1"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:57:46.416Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f1"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T17:59:33.035Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-168"
+      },
+      "scene": "Reward"
+    },
+    {
+      "at": "2026-11-03T18:00:02.916Z",
+      "action": {
+        "type": "route",
+        "id": 5
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T18:00:12.579Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-174"
+      },
+      "scene": "Event"
+    },
+    {
+      "at": "2026-11-03T18:00:48.496Z",
+      "action": {
+        "type": "continue_scene"
+      },
+      "scene": "Event"
+    },
+    {
+      "at": "2026-11-03T18:01:14.322Z",
+      "action": {
+        "type": "route",
+        "id": 8
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T18:01:23.971Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-179"
+      },
+      "scene": "Event"
+    },
+    {
+      "at": "2026-11-03T18:01:52.830Z",
+      "action": {
+        "type": "continue_scene"
+      },
+      "scene": "Event"
+    },
+    {
+      "at": "2026-11-03T18:02:17.639Z",
+      "action": {
+        "type": "route",
+        "id": 11
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T18:03:40.010Z",
+      "action": {
+        "type": "play_card",
+        "index": 2,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:03:42.024Z",
+      "action": {
+        "type": "play_card",
+        "index": 4,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:03:44.038Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:03:46.053Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f1"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:03:57.784Z",
+      "action": {
+        "type": "end_turn"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:06:15.793Z",
+      "action": {
+        "type": "play_card",
+        "index": 6,
+        "target": "f1"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:06:17.803Z",
+      "action": {
+        "type": "play_card",
+        "index": 4,
+        "target": "f1"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:07:53.423Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-194"
+      },
+      "scene": "Reward"
+    },
+    {
+      "at": "2026-11-03T18:08:26.359Z",
+      "action": {
+        "type": "route",
+        "id": 13
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T18:08:37.075Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-200"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T18:09:00.912Z",
+      "action": {
+        "type": "route",
+        "id": 17
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T18:09:08.584Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-204"
+      },
+      "scene": "Rest"
+    },
+    {
+      "at": "2026-11-03T18:09:35.600Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-216"
+      },
+      "scene": "Rest"
+    },
+    {
+      "at": "2026-11-03T18:11:55.684Z",
+      "action": {
+        "type": "route",
+        "id": 18
+      },
+      "scene": "Map"
+    },
+    {
+      "at": "2026-11-03T18:12:57.302Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:12:59.319Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:13:01.345Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:13:03.362Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:13:05.380Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:13:17.054Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:13:19.071Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:13:21.088Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:13:34.791Z",
+      "action": {
+        "type": "play_card",
+        "index": 2,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:13:36.806Z",
+      "action": {
+        "type": "play_card",
+        "index": 3,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:13:38.825Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:13:40.836Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:13:42.852Z",
+      "action": {
+        "type": "play_card",
+        "index": 2,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:13:52.559Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:14:01.259Z",
+      "action": {
+        "type": "end_turn"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:15:21.657Z",
+      "action": {
+        "type": "play_card",
+        "index": 5,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:15:23.660Z",
+      "action": {
+        "type": "play_card",
+        "index": 5,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:15:25.689Z",
+      "action": {
+        "type": "play_card",
+        "index": 2,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:15:27.707Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:15:29.727Z",
+      "action": {
+        "type": "play_card",
+        "index": 2,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:15:44.459Z",
+      "action": {
+        "type": "play_card",
+        "index": 3,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:15:46.474Z",
+      "action": {
+        "type": "play_card",
+        "index": 2,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:15:56.164Z",
+      "action": {
+        "type": "end_turn"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:17:13.503Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:17:15.511Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:17:17.517Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:17:19.529Z",
+      "action": {
+        "type": "play_card",
+        "index": 3,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:17:21.548Z",
+      "action": {
+        "type": "play_card",
+        "index": 2,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:17:33.315Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:17:46.011Z",
+      "action": {
+        "type": "end_turn"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:19:01.356Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:19:15.180Z",
+      "action": {
+        "type": "play_card",
+        "index": 7,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:19:17.193Z",
+      "action": {
+        "type": "play_card",
+        "index": 6,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:19:19.202Z",
+      "action": {
+        "type": "play_card",
+        "index": 0,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:19:21.230Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:19:23.260Z",
+      "action": {
+        "type": "play_card",
+        "index": 1,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:19:35.984Z",
+      "action": {
+        "type": "play_card",
+        "index": 2,
+        "target": "f0"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:20:52.993Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:20:55.008Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:20:57.027Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:20:59.044Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:21:01.058Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:21:11.847Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:21:13.870Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:21:15.898Z",
+      "action": {
+        "type": "dialogue_next"
+      },
+      "scene": "Battle"
+    },
+    {
+      "at": "2026-11-03T18:21:33.958Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-236"
+      },
+      "scene": "Story"
+    },
+    {
+      "at": "2026-11-03T18:22:37.732Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-239"
+      },
+      "scene": "Ending"
+    },
+    {
+      "at": "2026-11-03T18:24:05.690Z",
+      "action": {
+        "type": "ui",
+        "id": "ui-240"
+      },
+      "scene": "Ending"
+    }
+  ],
+  "checkpoints": [
+    {
+      "evidence": "山海残卷_AI测试记录-d86f380d5465.json",
+      "sha256": "d86f380d54659be639e62491c6b5cc91ec822f786e6d80a305ba1b6da92d802d",
+      "exportedUtc": "2026-11-03T16:28:24.1417007Z",
+      "scene": "Battle",
+      "act": "南山经",
+      "seed": null,
+      "phase": "won",
+      "turn": 2,
+      "hp": 66,
+      "maxHp": 78,
+      "gold": 99,
+      "deckSize": 12,
+      "snapshotActionCount": 25,
+      "state": {
+        "ready": true,
+        "scene": "Battle",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "守卷人",
+          "守 卷 人",
+          "66 / 78",
+          "结束回合",
+          "暂停",
+          "牌　组",
+          "法　宝",
+          "遭遇",
+          "抽 2   弃 6   耗 0",
+          "2/3",
+          "金\n1 / 3",
+          "2"
+        ],
+        "player": {
+          "hp": 66,
+          "maxHp": 78,
+          "block": 0,
+          "energy": 2,
+          "energyMax": 3,
+          "gold": 99,
+          "buffs": {
+            "str": 2
+          },
+          "deckSize": 12,
+          "relics": [],
+          "potions": []
+        },
+        "act": "南山经",
+        "battle": {
+          "turn": 2,
+          "phase": "won",
+          "inputBlocked": true,
+          "drawCount": 2,
+          "discardCount": 6,
+          "exhaustCount": 0,
+          "hand": [
+            {
+              "index": 0,
+              "id": "yuhua",
+              "name": "羽化",
+              "description": "获得 2 点敏捷与 5 点护甲。",
+              "cost": 1,
+              "target": "self",
+              "playable": false
+            },
+            {
+              "index": 1,
+              "id": "cijian",
+              "name": "刺剑式",
+              "description": "造成 6 点伤害。",
+              "cost": 1,
+              "target": "enemy",
+              "playable": false
+            },
+            {
+              "index": 2,
+              "id": "pozhang",
+              "name": "破绽",
+              "description": "施加 2 层易伤。",
+              "cost": 0,
+              "target": "enemy",
+              "playable": false
+            },
+            {
+              "index": 3,
+              "id": "huoyan",
+              "name": "火焰符",
+              "description": "造成 10 点伤害，施加 3 层灼烧。",
+              "cost": 2,
+              "target": "enemy",
+              "playable": false
+            }
+          ],
+          "enemies": [
+            {
+              "uid": "f0",
+              "id": "boyi",
+              "name": "猼訑",
+              "alive": false,
+              "hp": -7,
+              "maxHp": 36,
+              "block": 0,
+              "buffs": {},
+              "intent": {
+                "name": "九尾扫",
+                "type": "attack_debuff",
+                "dmg": 5,
+                "hits": 2,
+                "playerBuff": [
+                  "vuln",
+                  1
+                ],
+                "damagePerHit": 5
+              }
+            }
+          ]
+        },
+        "dialogue": null,
+        "routes": [],
+        "buttons": [
+          {
+            "id": "ui-10",
+            "label": "结束回合"
+          },
+          {
+            "id": "ui-11",
+            "label": "暂停"
+          },
+          {
+            "id": "ui-12",
+            "label": "牌　组"
+          },
+          {
+            "id": "ui-13",
+            "label": "法　宝"
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (1)-affc179b29d9.json",
+      "sha256": "affc179b29d92cafeaab60d7ad44735e7c111a6d9e5db665cdd6d7647eb5064d",
+      "exportedUtc": "2026-11-03T16:55:48.8037961Z",
+      "scene": "Map",
+      "act": "南山经",
+      "seed": null,
+      "phase": null,
+      "turn": null,
+      "hp": 73,
+      "maxHp": 81,
+      "gold": 26,
+      "deckSize": 14,
+      "snapshotActionCount": 41,
+      "state": {
+        "ready": true,
+        "scene": "Map",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "第一卷 · 南山经",
+          "《图考》云：南山之首曰鹊山，其首曰招摇之山，临于西海之上。",
+          "上道多异兽　·　中道多遗物残页（补笔长气血）　·　下道多际遇与鬼市",
+          "战",
+          "战",
+          "遇",
+          "遇",
+          "战",
+          "遇",
+          "战",
+          "战",
+          "遗",
+          "市",
+          "歇",
+          "遗",
+          "遇",
+          "精",
+          "页",
+          "遇",
+          "歇",
+          "市",
+          "守",
+          "卷1",
+          "战",
+          "遭遇",
+          "精",
+          "精英",
+          "遇",
+          "际遇",
+          "市",
+          "鬼市",
+          "歇",
+          "歇脚",
+          "遗",
+          "拾遗",
+          "页",
+          "残页",
+          "守",
+          "守卷",
+          "气血",
+          "73/81",
+          "墨 26",
+          "牌组 14",
+          "法宝 4",
+          "药水 1/3",
+          "ESC 牌组　·　H 要诀",
+          "牌　组",
+          "要　诀"
+        ],
+        "player": {
+          "hp": 73,
+          "maxHp": 81,
+          "block": 0,
+          "energy": 2,
+          "energyMax": 3,
+          "gold": 26,
+          "buffs": {
+            "str": 2
+          },
+          "deckSize": 14,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            }
+          ],
+          "potions": [
+            {
+              "id": "fogu",
+              "index": 0,
+              "name": "腐骨水",
+              "description": "对所有敌人施加 5 层中毒。"
+            }
+          ]
+        },
+        "act": "南山经",
+        "battle": null,
+        "dialogue": null,
+        "routes": [
+          {
+            "id": 18,
+            "col": 7,
+            "row": 0,
+            "type": "boss",
+            "label": "守卷之兽"
+          }
+        ],
+        "buttons": [
+          {
+            "id": "ui-47",
+            "label": "牌　组"
+          },
+          {
+            "id": "ui-48",
+            "label": "要　诀"
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (2)-0f5812adf61c.json",
+      "sha256": "0f5812adf61ca2ae8644d0374e8dde8c84e2a45287c0413cc3ef68ef362eefc4",
+      "exportedUtc": "2026-11-03T17:13:32.5684859Z",
+      "scene": "Battle",
+      "act": "南山经",
+      "seed": null,
+      "phase": "won",
+      "turn": 4,
+      "hp": 63,
+      "maxHp": 81,
+      "gold": 26,
+      "deckSize": 14,
+      "snapshotActionCount": 70,
+      "state": {
+        "ready": true,
+        "scene": "Battle",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "守卷人",
+          "守 卷 人",
+          "63 / 81",
+          "结束回合",
+          "暂停",
+          "牌　组",
+          "法　宝",
+          "守卷之兽",
+          "抽 1   弃 10   耗 0",
+          "1/3",
+          "4",
+          "4",
+          "4",
+          "金",
+          "金 · 锋锐　成 势",
+          "金",
+          "金 · 锋锐　成 势"
+        ],
+        "player": {
+          "hp": 63,
+          "maxHp": 81,
+          "block": 0,
+          "energy": 1,
+          "energyMax": 3,
+          "gold": 26,
+          "buffs": {
+            "dex": 4,
+            "str": 4,
+            "burn": 4
+          },
+          "deckSize": 14,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            }
+          ],
+          "potions": []
+        },
+        "act": "南山经",
+        "battle": {
+          "turn": 4,
+          "phase": "won",
+          "inputBlocked": true,
+          "drawCount": 1,
+          "discardCount": 10,
+          "exhaustCount": 0,
+          "hand": [
+            {
+              "index": 0,
+              "id": "cijian",
+              "name": "刺剑式",
+              "description": "造成 6 点伤害。",
+              "cost": 1,
+              "target": "enemy",
+              "playable": false
+            },
+            {
+              "index": 1,
+              "id": "huoyan",
+              "name": "火焰符",
+              "description": "造成 10 点伤害，施加 3 层灼烧。",
+              "cost": 2,
+              "target": "enemy",
+              "playable": false
+            },
+            {
+              "index": 2,
+              "id": "yufeng",
+              "name": "御风诀",
+              "description": "获得 5 点护甲。",
+              "cost": 1,
+              "target": "self",
+              "playable": false
+            }
+          ],
+          "enemies": [
+            {
+              "uid": "f0",
+              "id": "zhulong",
+              "name": "烛龙",
+              "alive": false,
+              "hp": -8,
+              "maxHp": 140,
+              "block": 0,
+              "buffs": {
+                "poison": 2,
+                "str": 2,
+                "vuln": 2
+              },
+              "intent": {
+                "name": "长明",
+                "type": "defend",
+                "block": 18,
+                "selfBuff": [
+                  "str",
+                  2
+                ],
+                "damagePerHit": 0,
+                "hits": 1
+              }
+            }
+          ]
+        },
+        "dialogue": null,
+        "routes": [],
+        "buttons": [
+          {
+            "id": "ui-50",
+            "label": "结束回合"
+          },
+          {
+            "id": "ui-51",
+            "label": "暂停"
+          },
+          {
+            "id": "ui-52",
+            "label": "牌　组"
+          },
+          {
+            "id": "ui-53",
+            "label": "法　宝"
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (3)-0c69477d4865.json",
+      "sha256": "0c69477d4865910a745c48c951885c6da6bd560e8ec94183c26fd29ff01bdddb",
+      "exportedUtc": "2026-11-03T17:15:23.3379799Z",
+      "scene": "Battle",
+      "act": "南山经",
+      "seed": null,
+      "phase": "won",
+      "turn": 4,
+      "hp": 66,
+      "maxHp": 84,
+      "gold": 44,
+      "deckSize": 14,
+      "snapshotActionCount": 70,
+      "state": {
+        "ready": true,
+        "scene": "Battle",
+        "seed": null,
+        "modal": "dialogue",
+        "continueScene": false,
+        "text": [
+          "守卷人",
+          "守 卷 人",
+          "63 / 81",
+          "结束回合",
+          "暂停",
+          "牌　组",
+          "法　宝",
+          "守卷之兽",
+          "抽 1   弃 10   耗 0",
+          "1/3",
+          "4",
+          "4",
+          "4",
+          "烛龙缓缓阖眼，身体散成漫天淡墨。",
+          "▼",
+          "点击继续",
+          "烛龙"
+        ],
+        "player": {
+          "hp": 66,
+          "maxHp": 84,
+          "block": 0,
+          "energy": 1,
+          "energyMax": 3,
+          "gold": 44,
+          "buffs": {
+            "dex": 4,
+            "str": 4,
+            "burn": 4
+          },
+          "deckSize": 14,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            }
+          ],
+          "potions": []
+        },
+        "act": "南山经",
+        "battle": {
+          "turn": 4,
+          "phase": "won",
+          "inputBlocked": true,
+          "drawCount": 1,
+          "discardCount": 10,
+          "exhaustCount": 0,
+          "hand": [
+            {
+              "index": 0,
+              "id": "cijian",
+              "name": "刺剑式",
+              "description": "造成 6 点伤害。",
+              "cost": 1,
+              "target": "enemy",
+              "playable": false
+            },
+            {
+              "index": 1,
+              "id": "huoyan",
+              "name": "火焰符",
+              "description": "造成 10 点伤害，施加 3 层灼烧。",
+              "cost": 2,
+              "target": "enemy",
+              "playable": false
+            },
+            {
+              "index": 2,
+              "id": "yufeng",
+              "name": "御风诀",
+              "description": "获得 5 点护甲。",
+              "cost": 1,
+              "target": "self",
+              "playable": false
+            }
+          ],
+          "enemies": [
+            {
+              "uid": "f0",
+              "id": "zhulong",
+              "name": "烛龙",
+              "alive": false,
+              "hp": -8,
+              "maxHp": 140,
+              "block": 0,
+              "buffs": {
+                "poison": 2,
+                "str": 2,
+                "vuln": 2
+              },
+              "intent": {
+                "name": "长明",
+                "type": "defend",
+                "block": 18,
+                "selfBuff": [
+                  "str",
+                  2
+                ],
+                "damagePerHit": 0,
+                "hits": 1
+              }
+            }
+          ]
+        },
+        "dialogue": {
+          "speaker": "烛龙",
+          "text": "烛龙缓缓阖眼，身体散成漫天淡墨。",
+          "line": 1,
+          "total": 4,
+          "typing": false
+        },
+        "routes": [],
+        "buttons": []
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (4)-74f5868451a9.json",
+      "sha256": "74f5868451a909ace82ae42c8e5be82d86882eab9bec5d9dc09eea2c60619c5e",
+      "exportedUtc": "2026-11-03T17:20:21.5829621Z",
+      "scene": "Map",
+      "act": "西次经",
+      "seed": null,
+      "phase": null,
+      "turn": null,
+      "hp": 94,
+      "maxHp": 94,
+      "gold": 44,
+      "deckSize": 14,
+      "snapshotActionCount": 77,
+      "state": {
+        "ready": true,
+        "scene": "Map",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "第二卷 · 西次经",
+          "《图考》云：西次三经之首曰崇吾之山，其上多玉，其下多青䨼。",
+          "上道多异兽　·　中道多遗物残页（补笔长气血）　·　下道多际遇与鬼市",
+          "战",
+          "战",
+          "战",
+          "战",
+          "战",
+          "遗",
+          "遇",
+          "战",
+          "遇",
+          "战",
+          "战",
+          "页",
+          "市",
+          "精",
+          "遇",
+          "歇",
+          "歇",
+          "市",
+          "守",
+          "卷2",
+          "战",
+          "遭遇",
+          "精",
+          "精英",
+          "遇",
+          "际遇",
+          "市",
+          "鬼市",
+          "歇",
+          "歇脚",
+          "遗",
+          "拾遗",
+          "页",
+          "残页",
+          "守",
+          "守卷",
+          "气血",
+          "94/94",
+          "墨 44",
+          "牌组 14",
+          "法宝 4",
+          "药水 —",
+          "ESC 牌组　·　H 要诀",
+          "牌　组",
+          "要　诀"
+        ],
+        "player": {
+          "hp": 94,
+          "maxHp": 94,
+          "block": 0,
+          "energy": 1,
+          "energyMax": 4,
+          "gold": 44,
+          "buffs": {
+            "dex": 4,
+            "str": 4,
+            "burn": 4
+          },
+          "deckSize": 14,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            }
+          ],
+          "potions": []
+        },
+        "act": "西次经",
+        "battle": null,
+        "dialogue": null,
+        "routes": [
+          {
+            "id": 0,
+            "col": 0,
+            "row": 0,
+            "type": "battle",
+            "label": "遭遇"
+          }
+        ],
+        "buttons": [
+          {
+            "id": "ui-60",
+            "label": "牌　组"
+          },
+          {
+            "id": "ui-61",
+            "label": "要　诀"
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (5)-66445f084ede.json",
+      "sha256": "66445f084ede0924148bead238b096d397d90b147fe4e6824d4965554b70669f",
+      "exportedUtc": "2026-11-03T17:27:52.0532601Z",
+      "scene": "Battle",
+      "act": "西次经",
+      "seed": null,
+      "phase": "won",
+      "turn": 2,
+      "hp": 94,
+      "maxHp": 94,
+      "gold": 44,
+      "deckSize": 14,
+      "snapshotActionCount": 89,
+      "state": {
+        "ready": true,
+        "scene": "Battle",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "蛮蛮",
+          "水",
+          "庇护",
+          "0 / 26",
+          "守卷人",
+          "-8",
+          "-8",
+          "-12",
+          "守 卷 人",
+          "94 / 94",
+          "护甲 7",
+          "结束回合",
+          "暂停",
+          "牌　组",
+          "法　宝",
+          "遭遇",
+          "抽 0   弃 10   耗 0",
+          "1/4",
+          "金\n1 / 3",
+          "2",
+          "4",
+          "净",
+          "金",
+          "金 · 锋锐　成 势"
+        ],
+        "player": {
+          "hp": 94,
+          "maxHp": 94,
+          "block": 7,
+          "energy": 1,
+          "energyMax": 4,
+          "gold": 44,
+          "buffs": {
+            "dex": 2,
+            "str": 4
+          },
+          "deckSize": 14,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            }
+          ],
+          "potions": []
+        },
+        "act": "西次经",
+        "battle": {
+          "turn": 2,
+          "phase": "won",
+          "inputBlocked": true,
+          "drawCount": 0,
+          "discardCount": 10,
+          "exhaustCount": 0,
+          "hand": [
+            {
+              "index": 0,
+              "id": "yufeng",
+              "name": "御风诀",
+              "description": "获得 5 点护甲。",
+              "cost": 1,
+              "target": "self",
+              "playable": false
+            },
+            {
+              "index": 1,
+              "id": "cijian",
+              "name": "刺剑式",
+              "description": "造成 6 点伤害。",
+              "cost": 1,
+              "target": "enemy",
+              "playable": false
+            },
+            {
+              "index": 2,
+              "id": "cijian",
+              "name": "刺剑式",
+              "description": "造成 6 点伤害。",
+              "cost": 1,
+              "target": "enemy",
+              "playable": false
+            },
+            {
+              "index": 3,
+              "id": "cijian",
+              "name": "刺剑式",
+              "description": "造成 6 点伤害。",
+              "cost": 1,
+              "target": "enemy",
+              "playable": false
+            }
+          ],
+          "enemies": [
+            {
+              "uid": "f0",
+              "id": "baiye",
+              "name": "白鵺",
+              "alive": false,
+              "hp": -1,
+              "maxHp": 40,
+              "block": 0,
+              "buffs": {
+                "burn": 3,
+                "dex": 2,
+                "vuln": 2
+              },
+              "intent": {
+                "name": "啄羽",
+                "type": "attack",
+                "dmg": 7,
+                "hits": 1,
+                "damagePerHit": 7
+              }
+            },
+            {
+              "uid": "f1",
+              "id": "manman",
+              "name": "蛮蛮",
+              "alive": false,
+              "hp": -7,
+              "maxHp": 26,
+              "block": 0,
+              "buffs": {},
+              "intent": {
+                "name": "相呼",
+                "type": "buff",
+                "selfBuff": [
+                  "str",
+                  2
+                ],
+                "block": 8,
+                "damagePerHit": 0,
+                "hits": 1
+              }
+            }
+          ]
+        },
+        "dialogue": null,
+        "routes": [],
+        "buttons": [
+          {
+            "id": "ui-66",
+            "label": "结束回合"
+          },
+          {
+            "id": "ui-67",
+            "label": "暂停"
+          },
+          {
+            "id": "ui-68",
+            "label": "牌　组"
+          },
+          {
+            "id": "ui-69",
+            "label": "法　宝"
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (6)-1b596ccfb16e.json",
+      "sha256": "1b596ccfb16e437ee0bf31a4572a833e3e1b3f30d58e876f4c204b67c3465597",
+      "exportedUtc": "2026-11-03T17:28:30.0369938Z",
+      "scene": "Reward",
+      "act": "西次经",
+      "seed": null,
+      "phase": null,
+      "turn": null,
+      "hp": 94,
+      "maxHp": 94,
+      "gold": 62,
+      "deckSize": 14,
+      "snapshotActionCount": 89,
+      "state": {
+        "ready": true,
+        "scene": "Reward",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "新",
+          "新",
+          "新",
+          "择一符箓",
+          "亦可弃之，换一段清净",
+          "跳　过"
+        ],
+        "player": {
+          "hp": 94,
+          "maxHp": 94,
+          "block": 7,
+          "energy": 1,
+          "energyMax": 4,
+          "gold": 62,
+          "buffs": {
+            "dex": 2,
+            "str": 4
+          },
+          "deckSize": 14,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            }
+          ],
+          "potions": []
+        },
+        "act": "西次经",
+        "battle": null,
+        "dialogue": null,
+        "routes": [],
+        "buttons": [
+          {
+            "id": "ui-74",
+            "label": "选择 春风"
+          },
+          {
+            "id": "ui-75",
+            "label": "选择 守一"
+          },
+          {
+            "id": "ui-76",
+            "label": "选择 重劈"
+          },
+          {
+            "id": "ui-77",
+            "label": "跳　过"
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (7)-beb51e20c798.json",
+      "sha256": "beb51e20c7989bd1c3153eb5392338df92e5a447085a516e46d90f32203bda45",
+      "exportedUtc": "2026-11-03T17:37:57.4482212Z",
+      "scene": "Rest",
+      "act": "西次经",
+      "seed": null,
+      "phase": null,
+      "turn": null,
+      "hp": 94,
+      "maxHp": 97,
+      "gold": 222,
+      "deckSize": 16,
+      "snapshotActionCount": 111,
+      "state": {
+        "ready": true,
+        "scene": "Rest",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "歇　脚",
+          "一炷香的工夫，只够做一件事",
+          "养　气",
+          "回复 35 点气血",
+          "稳妥，但不会让你变强",
+          "修　符",
+          "升级一张符箓",
+          "数值提升，最直接的收益",
+          "铭　刻",
+          "为一张符箓刻上篆文",
+          "改变打法，但纹样随机",
+          "择其一，然后继续前行",
+          "继续前行"
+        ],
+        "player": {
+          "hp": 94,
+          "maxHp": 97,
+          "block": 0,
+          "energy": 3,
+          "energyMax": 4,
+          "gold": 222,
+          "buffs": {
+            "str": 2
+          },
+          "deckSize": 16,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            },
+            {
+              "id": "fuzhidai",
+              "name": "符纸袋",
+              "description": "每回合多抽 1 张牌。"
+            }
+          ],
+          "potions": []
+        },
+        "act": "西次经",
+        "battle": null,
+        "dialogue": null,
+        "routes": [],
+        "buttons": [
+          {
+            "id": "ui-109",
+            "label": "养　气"
+          },
+          {
+            "id": "ui-110",
+            "label": "修　符"
+          },
+          {
+            "id": "ui-111",
+            "label": "铭　刻"
+          },
+          {
+            "id": "ui-112",
+            "label": "继续前行"
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (8)-5ec3f94f9cb4.json",
+      "sha256": "5ec3f94f9cb4d414c3807dabc08418cca5f0687e886e843ae893e8cda68d00e6",
+      "exportedUtc": "2026-11-03T17:38:28.1448292Z",
+      "scene": "Rest",
+      "act": "西次经",
+      "seed": null,
+      "phase": null,
+      "turn": null,
+      "hp": 94,
+      "maxHp": 97,
+      "gold": 222,
+      "deckSize": 16,
+      "snapshotActionCount": 113,
+      "state": {
+        "ready": true,
+        "scene": "Rest",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "歇　脚",
+          "一炷香的工夫，只够做一件事",
+          "养　气",
+          "回复 35 点气血",
+          "稳妥，但不会让你变强",
+          "修　符",
+          "升级一张符箓",
+          "数值提升，最直接的收益",
+          "铭　刻",
+          "为一张符箓刻上篆文",
+          "改变打法，但纹样随机",
+          "择其一，然后继续前行",
+          "继续前行",
+          "「连环斩」段数 2 → 3。\n笔画重写，锋芒更盛。"
+        ],
+        "player": {
+          "hp": 94,
+          "maxHp": 97,
+          "block": 0,
+          "energy": 3,
+          "energyMax": 4,
+          "gold": 222,
+          "buffs": {
+            "str": 2
+          },
+          "deckSize": 16,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            },
+            {
+              "id": "fuzhidai",
+              "name": "符纸袋",
+              "description": "每回合多抽 1 张牌。"
+            }
+          ],
+          "potions": []
+        },
+        "act": "西次经",
+        "battle": null,
+        "dialogue": null,
+        "routes": [],
+        "buttons": []
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (9)-7aad1d0291ea.json",
+      "sha256": "7aad1d0291eaef166fa4396d0c7e173e41ebf13956631b5bba7e22be8fe62439",
+      "exportedUtc": "2026-11-03T17:39:51.8995130Z",
+      "scene": "Map",
+      "act": "西次经",
+      "seed": null,
+      "phase": null,
+      "turn": null,
+      "hp": 94,
+      "maxHp": 97,
+      "gold": 222,
+      "deckSize": 16,
+      "snapshotActionCount": 113,
+      "state": {
+        "ready": true,
+        "scene": "Map",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "第二卷 · 西次经",
+          "《图考》云：西次三经之首曰崇吾之山，其上多玉，其下多青䨼。",
+          "上道多异兽　·　中道多遗物残页（补笔长气血）　·　下道多际遇与鬼市",
+          "战",
+          "战",
+          "战",
+          "战",
+          "战",
+          "遗",
+          "遇",
+          "战",
+          "遇",
+          "战",
+          "战",
+          "页",
+          "市",
+          "精",
+          "遇",
+          "歇",
+          "歇",
+          "市",
+          "守",
+          "卷2",
+          "战",
+          "遭遇",
+          "精",
+          "精英",
+          "遇",
+          "际遇",
+          "市",
+          "鬼市",
+          "歇",
+          "歇脚",
+          "遗",
+          "拾遗",
+          "页",
+          "残页",
+          "守",
+          "守卷",
+          "气血",
+          "94/97",
+          "墨 222",
+          "牌组 16",
+          "法宝 5",
+          "药水 —",
+          "ESC 牌组　·　H 要诀",
+          "牌　组",
+          "要　诀"
+        ],
+        "player": {
+          "hp": 94,
+          "maxHp": 97,
+          "block": 0,
+          "energy": 3,
+          "energyMax": 4,
+          "gold": 222,
+          "buffs": {
+            "str": 2
+          },
+          "deckSize": 16,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            },
+            {
+              "id": "fuzhidai",
+              "name": "符纸袋",
+              "description": "每回合多抽 1 张牌。"
+            }
+          ],
+          "potions": []
+        },
+        "act": "西次经",
+        "battle": null,
+        "dialogue": null,
+        "routes": [
+          {
+            "id": 18,
+            "col": 7,
+            "row": 0,
+            "type": "boss",
+            "label": "守卷之兽"
+          }
+        ],
+        "buttons": [
+          {
+            "id": "ui-127",
+            "label": "牌　组"
+          },
+          {
+            "id": "ui-128",
+            "label": "要　诀"
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (10)-45fff9ea0d5e.json",
+      "sha256": "45fff9ea0d5e1c24e853731d5753f17dc930cfe0fb2cd29117e1517236449002",
+      "exportedUtc": "2026-11-03T17:44:05.5588254Z",
+      "scene": "Battle",
+      "act": "西次经",
+      "seed": null,
+      "phase": "enemy",
+      "turn": 2,
+      "hp": 67,
+      "maxHp": 97,
+      "gold": 222,
+      "deckSize": 16,
+      "snapshotActionCount": 133,
+      "state": {
+        "ready": true,
+        "scene": "Battle",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "刑天",
+          "金",
+          "+18",
+          "力+3 · 灼4 · 伤2",
+          "85 / 185",
+          "守卷人",
+          "守 卷 人",
+          "67 / 97",
+          "共鸣  通玄",
+          "结束回合",
+          "暂停",
+          "牌　组",
+          "法　宝",
+          "守卷之兽",
+          "抽 0   弃 12   耗 0",
+          "0/4",
+          "水\n1 / 3",
+          "4",
+          "3",
+          "刑天把斧举过头顶。颈上什么也没有。"
+        ],
+        "player": {
+          "hp": 67,
+          "maxHp": 97,
+          "block": 0,
+          "energy": 0,
+          "energyMax": 4,
+          "gold": 222,
+          "buffs": {
+            "str": 4,
+            "dex": 3
+          },
+          "deckSize": 16,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            },
+            {
+              "id": "fuzhidai",
+              "name": "符纸袋",
+              "description": "每回合多抽 1 张牌。"
+            }
+          ],
+          "potions": []
+        },
+        "act": "西次经",
+        "battle": {
+          "turn": 2,
+          "phase": "enemy",
+          "inputBlocked": true,
+          "drawCount": 0,
+          "discardCount": 16,
+          "exhaustCount": 0,
+          "hand": [],
+          "enemies": [
+            {
+              "uid": "f0",
+              "id": "xingtian",
+              "name": "刑天",
+              "alive": true,
+              "hp": 85,
+              "maxHp": 185,
+              "block": 0,
+              "buffs": {
+                "vuln": 1,
+                "str": 3,
+                "burn": 4
+              },
+              "intent": {
+                "name": "干戚之舞",
+                "type": "attack",
+                "dmg": 7,
+                "hits": 3,
+                "damagePerHit": 10
+              }
+            }
+          ]
+        },
+        "dialogue": null,
+        "routes": [],
+        "buttons": [
+          {
+            "id": "ui-135",
+            "label": "界面控件 ui-135"
+          },
+          {
+            "id": "ui-130",
+            "label": "结束回合"
+          },
+          {
+            "id": "ui-131",
+            "label": "暂停"
+          },
+          {
+            "id": "ui-132",
+            "label": "牌　组"
+          },
+          {
+            "id": "ui-133",
+            "label": "法　宝"
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (11)-8693ba801300.json",
+      "sha256": "8693ba80130013c4cc406ded574473b1055f7101954c072eee83516072d902e5",
+      "exportedUtc": "2026-11-03T17:45:18.4366306Z",
+      "scene": "Battle",
+      "act": "西次经",
+      "seed": null,
+      "phase": "won",
+      "turn": 3,
+      "hp": 75,
+      "maxHp": 97,
+      "gold": 222,
+      "deckSize": 16,
+      "snapshotActionCount": 138,
+      "state": {
+        "ready": true,
+        "scene": "Battle",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "刑天",
+          "金",
+          "力+3 · 灼4 · 伤3",
+          "0 / 185",
+          "守卷人",
+          "+8",
+          "-15",
+          "-15",
+          "-15",
+          "守 卷 人",
+          "75 / 97",
+          "护甲 13",
+          "共鸣  通玄",
+          "结束回合",
+          "暂停",
+          "牌　组",
+          "法　宝",
+          "守卷之兽",
+          "抽 7   弃 5   耗 0",
+          "1/4",
+          "6",
+          "6",
+          "词",
+          "我有齿　不肯噬",
+          "净",
+          "金",
+          "金 · 锋锐　成 势"
+        ],
+        "player": {
+          "hp": 75,
+          "maxHp": 97,
+          "block": 13,
+          "energy": 1,
+          "energyMax": 4,
+          "gold": 222,
+          "buffs": {
+            "str": 6,
+            "dex": 6
+          },
+          "deckSize": 16,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            },
+            {
+              "id": "fuzhidai",
+              "name": "符纸袋",
+              "description": "每回合多抽 1 张牌。"
+            }
+          ],
+          "potions": []
+        },
+        "act": "西次经",
+        "battle": {
+          "turn": 3,
+          "phase": "won",
+          "inputBlocked": true,
+          "drawCount": 7,
+          "discardCount": 5,
+          "exhaustCount": 0,
+          "hand": [
+            {
+              "index": 0,
+              "id": "yufeng",
+              "name": "御风诀",
+              "description": "获得 5 点护甲。",
+              "cost": 1,
+              "target": "self",
+              "playable": false
+            },
+            {
+              "index": 1,
+              "id": "cijian",
+              "name": "刺剑式",
+              "description": "造成 6 点伤害。",
+              "cost": 1,
+              "target": "enemy",
+              "playable": false
+            },
+            {
+              "index": 2,
+              "id": "cijian",
+              "name": "刺剑式",
+              "description": "造成 6 点伤害。",
+              "cost": 1,
+              "target": "enemy",
+              "playable": false
+            },
+            {
+              "index": 3,
+              "id": "chunfeng",
+              "name": "春风",
+              "description": "回复 6 点生命，获得 4 点护甲。",
+              "cost": 1,
+              "target": "self",
+              "playable": false
+            }
+          ],
+          "enemies": [
+            {
+              "uid": "f0",
+              "id": "xingtian",
+              "name": "刑天",
+              "alive": false,
+              "hp": -16,
+              "maxHp": 185,
+              "block": 0,
+              "buffs": {
+                "vuln": 3,
+                "str": 3,
+                "burn": 4
+              },
+              "intent": {
+                "name": "干戚之舞",
+                "type": "attack",
+                "dmg": 7,
+                "hits": 3,
+                "damagePerHit": 10
+              }
+            }
+          ]
+        },
+        "dialogue": null,
+        "routes": [],
+        "buttons": [
+          {
+            "id": "ui-130",
+            "label": "结束回合"
+          },
+          {
+            "id": "ui-131",
+            "label": "暂停"
+          },
+          {
+            "id": "ui-132",
+            "label": "牌　组"
+          },
+          {
+            "id": "ui-133",
+            "label": "法　宝"
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (12)-94852de44ea0.json",
+      "sha256": "94852de44ea06b05a819650dca220665a641001f75d431df52db869a4fd4c67e",
+      "exportedUtc": "2026-11-03T17:46:06.5359183Z",
+      "scene": "Battle",
+      "act": "西次经",
+      "seed": null,
+      "phase": "won",
+      "turn": 3,
+      "hp": 78,
+      "maxHp": 100,
+      "gold": 240,
+      "deckSize": 16,
+      "snapshotActionCount": 138,
+      "state": {
+        "ready": true,
+        "scene": "Battle",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "守卷人",
+          "守 卷 人",
+          "75 / 97",
+          "护甲 13",
+          "共鸣  通玄",
+          "结束回合",
+          "暂停",
+          "牌　组",
+          "法　宝",
+          "守卷之兽",
+          "抽 7   弃 5   耗 0",
+          "1/4",
+          "6",
+          "6"
+        ],
+        "player": {
+          "hp": 78,
+          "maxHp": 100,
+          "block": 13,
+          "energy": 1,
+          "energyMax": 4,
+          "gold": 240,
+          "buffs": {
+            "str": 6,
+            "dex": 6
+          },
+          "deckSize": 16,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            },
+            {
+              "id": "fuzhidai",
+              "name": "符纸袋",
+              "description": "每回合多抽 1 张牌。"
+            }
+          ],
+          "potions": []
+        },
+        "act": "西次经",
+        "battle": {
+          "turn": 3,
+          "phase": "won",
+          "inputBlocked": true,
+          "drawCount": 7,
+          "discardCount": 5,
+          "exhaustCount": 0,
+          "hand": [
+            {
+              "index": 0,
+              "id": "yufeng",
+              "name": "御风诀",
+              "description": "获得 5 点护甲。",
+              "cost": 1,
+              "target": "self",
+              "playable": false
+            },
+            {
+              "index": 1,
+              "id": "cijian",
+              "name": "刺剑式",
+              "description": "造成 6 点伤害。",
+              "cost": 1,
+              "target": "enemy",
+              "playable": false
+            },
+            {
+              "index": 2,
+              "id": "cijian",
+              "name": "刺剑式",
+              "description": "造成 6 点伤害。",
+              "cost": 1,
+              "target": "enemy",
+              "playable": false
+            },
+            {
+              "index": 3,
+              "id": "chunfeng",
+              "name": "春风",
+              "description": "回复 6 点生命，获得 4 点护甲。",
+              "cost": 1,
+              "target": "self",
+              "playable": false
+            }
+          ],
+          "enemies": [
+            {
+              "uid": "f0",
+              "id": "xingtian",
+              "name": "刑天",
+              "alive": false,
+              "hp": -16,
+              "maxHp": 185,
+              "block": 0,
+              "buffs": {
+                "vuln": 3,
+                "str": 3,
+                "burn": 4
+              },
+              "intent": {
+                "name": "干戚之舞",
+                "type": "attack",
+                "dmg": 7,
+                "hits": 3,
+                "damagePerHit": 10
+              }
+            }
+          ]
+        },
+        "dialogue": null,
+        "routes": [],
+        "buttons": [
+          {
+            "id": "ui-130",
+            "label": "结束回合"
+          },
+          {
+            "id": "ui-131",
+            "label": "暂停"
+          },
+          {
+            "id": "ui-132",
+            "label": "牌　组"
+          },
+          {
+            "id": "ui-133",
+            "label": "法　宝"
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (13)-3bd3210b6b75.json",
+      "sha256": "3bd3210b6b75b30ebd31a049d24b06bade179b215f454c374022bdffa3d2261c",
+      "exportedUtc": "2026-11-03T17:46:49.7948213Z",
+      "scene": "Story",
+      "act": null,
+      "seed": null,
+      "phase": null,
+      "turn": null,
+      "hp": 110,
+      "maxHp": 110,
+      "gold": 240,
+      "deckSize": 16,
+      "snapshotActionCount": 144,
+      "state": {
+        "ready": true,
+        "scene": "Story",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "第三卷 · 北山经",
+          "《图考》云：北山之首曰单狐之山，多机木，其上多华草。"
+        ],
+        "player": {
+          "hp": 110,
+          "maxHp": 110,
+          "block": 13,
+          "energy": 1,
+          "energyMax": 5,
+          "gold": 240,
+          "buffs": {
+            "str": 6,
+            "dex": 6
+          },
+          "deckSize": 16,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            },
+            {
+              "id": "fuzhidai",
+              "name": "符纸袋",
+              "description": "每回合多抽 1 张牌。"
+            }
+          ],
+          "potions": []
+        },
+        "act": null,
+        "battle": null,
+        "dialogue": null,
+        "routes": [],
+        "buttons": [
+          {
+            "id": "ui-137",
+            "label": "界面控件 ui-137"
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (14)-46d13d342b83.json",
+      "sha256": "46d13d342b8346767b201cc36d980a25e41e448910716f54e9a455db3a720269",
+      "exportedUtc": "2026-11-03T18:11:55.5904479Z",
+      "scene": "Map",
+      "act": "北山经",
+      "seed": null,
+      "phase": null,
+      "turn": null,
+      "hp": 119,
+      "maxHp": 119,
+      "gold": 94,
+      "deckSize": 20,
+      "snapshotActionCount": 191,
+      "state": {
+        "ready": true,
+        "scene": "Map",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "第三卷 · 北山经",
+          "《图考》云：北山之首曰单狐之山，多机木，其上多华草。",
+          "上道多异兽　·　中道多遗物残页（补笔长气血）　·　下道多际遇与鬼市",
+          "战",
+          "战",
+          "战",
+          "战",
+          "战",
+          "遇",
+          "遇",
+          "精",
+          "遇",
+          "遇",
+          "战",
+          "战",
+          "战",
+          "页",
+          "市",
+          "歇",
+          "市",
+          "歇",
+          "守",
+          "卷3",
+          "战",
+          "遭遇",
+          "精",
+          "精英",
+          "遇",
+          "际遇",
+          "市",
+          "鬼市",
+          "歇",
+          "歇脚",
+          "遗",
+          "拾遗",
+          "页",
+          "残页",
+          "守",
+          "守卷",
+          "气血",
+          "119/119",
+          "墨 94",
+          "牌组 20",
+          "法宝 6",
+          "药水 1/3",
+          "ESC 牌组　·　H 要诀",
+          "牌　组",
+          "要　诀"
+        ],
+        "player": {
+          "hp": 119,
+          "maxHp": 119,
+          "block": 0,
+          "energy": 4,
+          "energyMax": 5,
+          "gold": 94,
+          "buffs": {},
+          "deckSize": 20,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            },
+            {
+              "id": "fuzhidai",
+              "name": "符纸袋",
+              "description": "每回合多抽 1 张牌。"
+            },
+            {
+              "id": "guijia",
+              "name": "龟甲",
+              "description": "战斗开始时获得 9 点护甲。"
+            }
+          ],
+          "potions": [
+            {
+              "id": "chixiao",
+              "index": 0,
+              "name": "赤霄散",
+              "description": "对生命最低的敌人造成 20 点伤害，无视护甲。"
+            }
+          ]
+        },
+        "act": "北山经",
+        "battle": null,
+        "dialogue": null,
+        "routes": [
+          {
+            "id": 18,
+            "col": 7,
+            "row": 0,
+            "type": "boss",
+            "label": "守卷之兽"
+          }
+        ],
+        "buttons": [
+          {
+            "id": "ui-224",
+            "label": "牌　组"
+          },
+          {
+            "id": "ui-225",
+            "label": "要　诀"
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (15)-242d445017bc.json",
+      "sha256": "242d445017bce1adbae74536789838e06635dcd56faa386be4c6501dbf2cc16c",
+      "exportedUtc": "2026-11-03T18:19:44.6969134Z",
+      "scene": "Battle",
+      "act": "北山经",
+      "seed": null,
+      "phase": "won",
+      "turn": 4,
+      "hp": 119,
+      "maxHp": 119,
+      "gold": 94,
+      "deckSize": 20,
+      "snapshotActionCount": 200,
+      "state": {
+        "ready": true,
+        "scene": "Battle",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "帝江",
+          "土",
+          "力+4 · 伤2",
+          "0 / 300",
+          "守卷人",
+          "+4",
+          "-23",
+          "守 卷 人",
+          "119 / 119",
+          "护甲 15",
+          "共鸣  通玄",
+          "结束回合",
+          "暂停",
+          "牌　组",
+          "法　宝",
+          "守卷之兽",
+          "抽 1   弃 15   耗 0",
+          "1/5",
+          "8",
+          "6",
+          "4",
+          "词",
+          "趁这一页",
+          "净",
+          "金",
+          "金 · 锋锐　成 势",
+          "金",
+          "金 · 锋锐　成 势"
+        ],
+        "player": {
+          "hp": 119,
+          "maxHp": 119,
+          "block": 15,
+          "energy": 1,
+          "energyMax": 5,
+          "gold": 94,
+          "buffs": {
+            "dex": 8,
+            "str": 6,
+            "burn": 4
+          },
+          "deckSize": 20,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            },
+            {
+              "id": "fuzhidai",
+              "name": "符纸袋",
+              "description": "每回合多抽 1 张牌。"
+            },
+            {
+              "id": "guijia",
+              "name": "龟甲",
+              "description": "战斗开始时获得 9 点护甲。"
+            }
+          ],
+          "potions": [
+            {
+              "id": "chixiao",
+              "index": 0,
+              "name": "赤霄散",
+              "description": "对生命最低的敌人造成 20 点伤害，无视护甲。"
+            }
+          ]
+        },
+        "act": "北山经",
+        "battle": {
+          "turn": 4,
+          "phase": "won",
+          "inputBlocked": true,
+          "drawCount": 1,
+          "discardCount": 15,
+          "exhaustCount": 0,
+          "hand": [
+            {
+              "index": 0,
+              "id": "yufeng",
+              "name": "御风诀",
+              "description": "获得 5 点护甲。",
+              "cost": 1,
+              "target": "self",
+              "playable": false
+            },
+            {
+              "index": 1,
+              "id": "baoyan",
+              "name": "爆炎",
+              "description": "造成目标灼烧层数 5 倍的伤害，然后清除其灼烧。",
+              "cost": 2,
+              "target": "enemy",
+              "playable": false
+            },
+            {
+              "index": 2,
+              "id": "huoyan",
+              "name": "火焰符",
+              "description": "造成 14 点伤害，施加 4 层灼烧。",
+              "cost": 2,
+              "target": "enemy",
+              "playable": false
+            },
+            {
+              "index": 3,
+              "id": "yuhua",
+              "name": "羽化",
+              "description": "获得 2 点敏捷与 5 点护甲。",
+              "cost": 1,
+              "target": "self",
+              "playable": false
+            }
+          ],
+          "enemies": [
+            {
+              "uid": "f0",
+              "id": "dijiang",
+              "name": "帝江",
+              "alive": false,
+              "hp": -7,
+              "maxHp": 300,
+              "block": 0,
+              "buffs": {
+                "str": 4,
+                "vuln": 2
+              },
+              "intent": {
+                "name": "浑敦",
+                "type": "attack_debuff",
+                "dmg": 10,
+                "hits": 1,
+                "playerBuff": [
+                  "weak",
+                  2
+                ],
+                "damagePerHit": 14
+              }
+            }
+          ]
+        },
+        "dialogue": null,
+        "routes": [],
+        "buttons": [
+          {
+            "id": "ui-227",
+            "label": "结束回合"
+          },
+          {
+            "id": "ui-228",
+            "label": "暂停"
+          },
+          {
+            "id": "ui-229",
+            "label": "牌　组"
+          },
+          {
+            "id": "ui-230",
+            "label": "法　宝"
+          },
+          {
+            "id": "ui-231",
+            "label": "界面控件 ui-231"
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (16)-fab05ec16425.json",
+      "sha256": "fab05ec1642525b45fed0d45b9a66e35e7c8575de852b98f27b400c0a430cb4b",
+      "exportedUtc": "2026-11-03T18:22:19.9788642Z",
+      "scene": "Ending",
+      "act": "北山经",
+      "seed": null,
+      "phase": null,
+      "turn": null,
+      "hp": 122,
+      "maxHp": 122,
+      "gold": 112,
+      "deckSize": 20,
+      "snapshotActionCount": 200,
+      "state": {
+        "ready": true,
+        "scene": "Ending",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "补　卷",
+          "以自己的血补全图卷，异兽永镇。",
+          "焚　卷",
+          "烧毁图卷，放异兽归世。",
+          "代　卷",
+          "将整枚印按进卷心，改写图里的规矩。",
+          "卷　末",
+          "你已收集 6 / 9 页残卷"
+        ],
+        "player": {
+          "hp": 122,
+          "maxHp": 122,
+          "block": 15,
+          "energy": 1,
+          "energyMax": 5,
+          "gold": 112,
+          "buffs": {
+            "dex": 8,
+            "str": 6,
+            "burn": 4
+          },
+          "deckSize": 20,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            },
+            {
+              "id": "fuzhidai",
+              "name": "符纸袋",
+              "description": "每回合多抽 1 张牌。"
+            },
+            {
+              "id": "guijia",
+              "name": "龟甲",
+              "description": "战斗开始时获得 9 点护甲。"
+            }
+          ],
+          "potions": [
+            {
+              "id": "chixiao",
+              "index": 0,
+              "name": "赤霄散",
+              "description": "对生命最低的敌人造成 20 点伤害，无视护甲。"
+            }
+          ]
+        },
+        "act": "北山经",
+        "battle": null,
+        "dialogue": null,
+        "routes": [],
+        "buttons": [
+          {
+            "id": "ui-237",
+            "label": "补　卷"
+          },
+          {
+            "id": "ui-238",
+            "label": "焚　卷"
+          },
+          {
+            "id": "ui-239",
+            "label": "代　卷"
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (17)-2a2a8ce7914b.json",
+      "sha256": "2a2a8ce7914b2074ffb938e0722ba8452daf7cb27683e3c59e603588a0c435a0",
+      "exportedUtc": "2026-11-03T18:22:51.4511054Z",
+      "scene": "Ending",
+      "act": "北山经",
+      "seed": null,
+      "phase": null,
+      "turn": null,
+      "hp": 122,
+      "maxHp": 122,
+      "gold": 112,
+      "deckSize": 20,
+      "snapshotActionCount": 200,
+      "state": {
+        "ready": true,
+        "scene": "Ending",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "补　卷",
+          "以自己的血补全图卷，异兽永镇。",
+          "焚　卷",
+          "烧毁图卷，放异兽归世。",
+          "代　卷",
+          "将整枚印按进卷心，改写图里的规矩。",
+          "卷　末",
+          "你已收集 6 / 9 页残卷",
+          "代 卷",
+          "通关评分 9030"
+        ],
+        "player": {
+          "hp": 122,
+          "maxHp": 122,
+          "block": 15,
+          "energy": 1,
+          "energyMax": 5,
+          "gold": 112,
+          "buffs": {
+            "dex": 8,
+            "str": 6,
+            "burn": 4
+          },
+          "deckSize": 20,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            },
+            {
+              "id": "fuzhidai",
+              "name": "符纸袋",
+              "description": "每回合多抽 1 张牌。"
+            },
+            {
+              "id": "guijia",
+              "name": "龟甲",
+              "description": "战斗开始时获得 9 点护甲。"
+            }
+          ],
+          "potions": [
+            {
+              "id": "chixiao",
+              "index": 0,
+              "name": "赤霄散",
+              "description": "对生命最低的敌人造成 20 点伤害，无视护甲。"
+            }
+          ]
+        },
+        "act": "北山经",
+        "battle": null,
+        "dialogue": null,
+        "routes": [],
+        "buttons": [
+          {
+            "id": "ui-237",
+            "label": "补　卷"
+          },
+          {
+            "id": "ui-238",
+            "label": "焚　卷"
+          },
+          {
+            "id": "ui-239",
+            "label": "代　卷"
+          },
+          {
+            "id": "ui-240",
+            "label": "界面控件 ui-240"
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (18)-6cb861b88346.json",
+      "sha256": "6cb861b8834687e1a62e2dc95de79431c23099d567de45f5f8b5af4e475068dc",
+      "exportedUtc": "2026-11-03T18:24:05.6124152Z",
+      "scene": "Ending",
+      "act": "北山经",
+      "seed": null,
+      "phase": null,
+      "turn": null,
+      "hp": 122,
+      "maxHp": 122,
+      "gold": 112,
+      "deckSize": 20,
+      "snapshotActionCount": 200,
+      "state": {
+        "ready": true,
+        "scene": "Ending",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "补　卷",
+          "以自己的血补全图卷，异兽永镇。",
+          "焚　卷",
+          "烧毁图卷，放异兽归世。",
+          "代　卷",
+          "将整枚印按进卷心，改写图里的规矩。",
+          "卷　末",
+          "你已收集 6 / 9 页残卷",
+          "代 卷",
+          "你展开空白的册子，提笔，写下了自己的名字。",
+          "身体开始变轻，像墨滴进水里。",
+          "你听见那些异兽在很远的地方同时停下动作，转过头来。",
+          "它们认得这个笔迹——和三十年前写下它们的那个人，一模一样。",
+          "通关评分 9030",
+          "回　山　门"
+        ],
+        "player": {
+          "hp": 122,
+          "maxHp": 122,
+          "block": 15,
+          "energy": 1,
+          "energyMax": 5,
+          "gold": 112,
+          "buffs": {
+            "dex": 8,
+            "str": 6,
+            "burn": 4
+          },
+          "deckSize": 20,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            },
+            {
+              "id": "fuzhidai",
+              "name": "符纸袋",
+              "description": "每回合多抽 1 张牌。"
+            },
+            {
+              "id": "guijia",
+              "name": "龟甲",
+              "description": "战斗开始时获得 9 点护甲。"
+            }
+          ],
+          "potions": [
+            {
+              "id": "chixiao",
+              "index": 0,
+              "name": "赤霄散",
+              "description": "对生命最低的敌人造成 20 点伤害，无视护甲。"
+            }
+          ]
+        },
+        "act": "北山经",
+        "battle": null,
+        "dialogue": null,
+        "routes": [],
+        "buttons": [
+          {
+            "id": "ui-237",
+            "label": "补　卷"
+          },
+          {
+            "id": "ui-238",
+            "label": "焚　卷"
+          },
+          {
+            "id": "ui-239",
+            "label": "代　卷"
+          },
+          {
+            "id": "ui-240",
+            "label": "回　山　门"
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "山海残卷_AI测试记录 (19)-4b6f8983f624.json",
+      "sha256": "4b6f8983f624165e5062d32364fd4e781df4b331326a5bb4a40bbbe9961944b9",
+      "exportedUtc": "2026-11-03T18:24:40.6249432Z",
+      "scene": "Title",
+      "act": null,
+      "seed": null,
+      "phase": null,
+      "turn": null,
+      "hp": 122,
+      "maxHp": 122,
+      "gold": 112,
+      "deckSize": 20,
+      "snapshotActionCount": 200,
+      "state": {
+        "ready": true,
+        "scene": "Title",
+        "seed": null,
+        "modal": null,
+        "continueScene": false,
+        "text": [
+          "山海残卷",
+          "要　诀　·　五行与规则",
+          "天命 1 重 · 墨始微涨　·　点击调整难度",
+          "S C R O L L S   O F   S H A N H A I",
+          "残\n卷",
+          "展　卷",
+          "心　法",
+          "图　鉴",
+          "入卷 1 次    ·    破卷 1 次    ·    最远 第 37 层    ·    最佳 9030 分    ·    图鉴 29%",
+          "v3.9.4  ·  点击或拖拽出牌"
+        ],
+        "player": {
+          "hp": 122,
+          "maxHp": 122,
+          "block": 15,
+          "energy": 1,
+          "energyMax": 5,
+          "gold": 112,
+          "buffs": {
+            "dex": 8,
+            "str": 6,
+            "burn": 4
+          },
+          "deckSize": 20,
+          "relics": [
+            {
+              "id": "zhaohun",
+              "name": "招魂幡",
+              "description": "每击杀一个敌人，回复 8 点生命并抽 1 张牌。"
+            },
+            {
+              "id": "tongqian",
+              "name": "铜钱串",
+              "description": "每场战斗胜利额外获得 18 墨。"
+            },
+            {
+              "id": "biji",
+              "name": "手札",
+              "description": "每打出 5 张牌，抽 1 张并回复 1 点灵力。"
+            },
+            {
+              "id": "jianzhong",
+              "name": "剑冢",
+              "description": "每打出第 3 张攻击牌，对所有敌人造成 8 点伤害。"
+            },
+            {
+              "id": "fuzhidai",
+              "name": "符纸袋",
+              "description": "每回合多抽 1 张牌。"
+            },
+            {
+              "id": "guijia",
+              "name": "龟甲",
+              "description": "战斗开始时获得 9 点护甲。"
+            }
+          ],
+          "potions": [
+            {
+              "id": "chixiao",
+              "index": 0,
+              "name": "赤霄散",
+              "description": "对生命最低的敌人造成 20 点伤害，无视护甲。"
+            }
+          ]
+        },
+        "act": null,
+        "battle": null,
+        "dialogue": null,
+        "routes": [],
+        "buttons": [
+          {
+            "id": "ui-241",
+            "label": "要　诀　·　五行与规则"
+          },
+          {
+            "id": "ui-242",
+            "label": "天命 1 重 · 墨始微涨　·　点击调整难度"
+          },
+          {
+            "id": "ui-243",
+            "label": "展　卷"
+          },
+          {
+            "id": "ui-244",
+            "label": "心　法"
+          },
+          {
+            "id": "ui-245",
+            "label": "图　鉴"
+          }
+        ]
+      }
+    }
+  ]
+}
