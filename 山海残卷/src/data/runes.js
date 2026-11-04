@@ -24,7 +24,7 @@ export const RUNES = {
   },
   hui: {
     name: '回', full: '回响', color: '#6b5a8a',
-    desc: '每场战斗首次打出时，回到手牌。',
+    desc: '每场战斗首次打出时，回到手牌；满手时不回手。',
     apply: 'keep'
   },
   du: {

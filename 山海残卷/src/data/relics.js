@@ -18,7 +18,7 @@ export const RELICS = {
     set: 'fire',
     desc: '施加灼烧时额外 +1 层；灼烧伤害 +1。',
     hooks: {
-      applyBuff(B, s, target, name) { if (name === 'burn') target.buffs.burn = (target.buffs.burn || 0) + 1; },
+      applyBuff(B, s, target, name) { if (name === 'burn' && target !== B.player) target.buffs.burn = (target.buffs.burn || 0) + 1; },
       burnBonus() { return 1; }
     }
   },
@@ -71,7 +71,7 @@ export const RELICS = {
   hulu: {
     name: '药师葫芦', icon: 'gourd', rarity: 'common',
     set: 'guard',
-    desc: '每场战斗结束后回复 9 点生命。',
+    desc: '每场战斗胜利后回复 9 点生命。',
     hooks: { battleWin(B, s) { B.outHeal += 9; } }
   },
   nianzhu: {
@@ -162,7 +162,7 @@ export const RELICS = {
   leigong: {
     name: '雷公凿', icon: 'thunder', rarity: 'uncommon',
     set: 'fire',
-    desc: '每回合第一次打出攻击牌时，施加 1 层易伤。',
+    desc: '每回合一次：单体攻击牌结算后，若目标仍存活，施加 1 层易伤。',
     hooks: {
       turnStart(B, s) { s.used = false; },
       cardPlayed(B, s, card, target) {
@@ -208,7 +208,7 @@ export const RELICS = {
     set: 'fire',
     desc: '施加灼烧时额外 +2 层；灼烧伤害 +2。',
     hooks: {
-      applyBuff(B, s, target, name) { if (name === 'burn') target.buffs.burn = (target.buffs.burn || 0) + 2; },
+      applyBuff(B, s, target, name) { if (name === 'burn' && target !== B.player) target.buffs.burn = (target.buffs.burn || 0) + 2; },
       burnBonus() { return 2; }
     }
   },
@@ -221,7 +221,7 @@ export const RELICS = {
   wuxing: {
     name: '五行轮', icon: 'star', rarity: 'rare',
     set: 'seal',
-    desc: '每回合第一次打出的牌费用减少 1。',
+    desc: '每回合首次打出非 X 费且需要灵力的牌，费用减少 1。',
     hooks: {
       turnStart(B, s) { s.used = false; },
       costMod(B, s, card, preview, c) {
@@ -276,7 +276,7 @@ export const RELICS = {
     hooks: {
       turnStart(B, s) { s.used = false; },
       applyBuff(B, s, target, name) {
-        if (name === 'burn' && !s.used) { s.used = true; B.draw(1); }
+        if (name === 'burn' && target !== B.player && !s.used) { s.used = true; B.draw(1); }
       }
     }
   },

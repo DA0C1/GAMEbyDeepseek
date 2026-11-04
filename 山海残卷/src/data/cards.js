@@ -132,7 +132,7 @@ export const CARDS = {
     play(B, t, v) { B.damage(t, v.d); }
   }),
   wulei: D({
-    name: '五雷正法', type: 'attack', cost: 3, rarity: 'uncommon', icon: 'thunder', target: 'all', multi: 'n',
+    name: '五雷正法', type: 'attack', cost: 3, rarity: 'uncommon', icon: 'thunder', target: 'all', multi: 'n', randomTarget: true,
     text: '对随机敌人造成 {d} 点伤害 {n} 次。', vars: { d: 6, n: 5 }, up: { d: 8, n: 6 },
     play(B, t, v) { B.damageRandom(v.d, v.n); }
   }),
@@ -215,7 +215,7 @@ export const CARDS = {
   }),
   jingjie: D({
     name: '镜界', type: 'skill', cost: 2, rarity: 'rare', icon: 'moon', target: 'self',
-    text: '本回合受到的伤害减半。消耗。', vars: {}, up: {}, exhaust: true,
+    text: '本回合受到的攻击伤害减半。消耗。', vars: {}, up: {}, exhaust: true,
     play(B) { B.apply(B.player, 'halve', 1); }
   }),
   yinxiang: D({
@@ -326,7 +326,7 @@ export const CARDS = {
       B.discardAll();
       for (let i = 0; i < n; i++) B.damageAll(v.d);
     },
-    hitsOf(B) { return Math.max(0, B.hand.length - 1); }
+    hitsOf(B) { return B.hand.length; }
   }),
   xingyun: D({
     name: '星陨', type: 'attack', cost: 3, rarity: 'rare', icon: 'star', target: 'all',
@@ -367,7 +367,7 @@ export const CARDS = {
   }),
   mihuo: D({
     name: '迷惑', type: 'curse', cost: 1, rarity: 'curse', icon: 'cloud', target: 'none',
-    text: '无法打出。消耗。', vars: {}, up: {}, unplayable: true, exhaust: true,
+    text: '无法打出。回合结束时消耗。', vars: {}, up: {}, unplayable: true, exhaust: true, exhaustAtTurnEnd: true,
     play() {}
   }),
 
@@ -398,7 +398,7 @@ export const CARDS = {
     name: '追魂', type: 'attack', cost: 1, rarity: 'uncommon', icon: 'needle', target: 'enemy',
     text: '造成 {d} 点伤害。若本回合尚未打出过其它牌，抽 {c} 张。',
     vars: { d: 9, c: 2 }, up: { d: 12, c: 2 },
-    play(B, t, v) { B.damage(t, v.d); if (B.turnAttacks <= 1) B.draw(v.c); }
+    play(B, t, v) { B.damage(t, v.d); if (B.turnCardsPlayed === 1) B.draw(v.c); }
   }),
 
   /* ==========================================================
@@ -470,7 +470,7 @@ export const CARDS = {
   nizhuan: D({
     name: '逆转', type: 'skill', cost: 2, rarity: 'rare', icon: 'taiji', target: 'self',
     text: '当前护甲翻倍。', vars: {}, up: {},
-    play(B, t, v) { B.block(B.player.block); }
+    play(B, t, v) { B.block(B.player.block, { ignoreDex: true }); }
   }),
 
   /* ==========================================================
@@ -484,7 +484,7 @@ export const CARDS = {
   }),
   baoyan: D({
     name: '爆炎', type: 'attack', cost: 2, rarity: 'rare', icon: 'fire', target: 'enemy',
-    text: '造成目标灼烧层数 {m} 倍的伤害，然后清除其灼烧。',
+    text: '造成目标灼烧层数 {m} 倍的伤害（基础值至少 4），然后清除其灼烧。',
     vars: { m: 5 }, up: { m: 7 },
     play(B, t, v) {
       const burn = (t && t.buffs.burn) || 0;
@@ -544,7 +544,8 @@ export const CARDS = {
   }),
   xiangshu: D({
     name: '象数', type: 'skill', cost: 1, rarity: 'rare', icon: 'star', target: 'self',
-    text: '将手牌洗回牌库，然后抽等量的牌。', vars: { c: 0 }, up: { c: 1 },
+    text: '将手牌洗回牌库，然后抽等量的牌。',
+    textUp: '将手牌洗回牌库，然后抽等量的牌，并额外抽 {c} 张。', vars: { c: 0 }, up: { c: 1 },
     play(B, t, v) {
       const n = B.hand.length + (v.c || 0);
       B.hand.slice().forEach((c) => { B.drawPile.push(c); });
@@ -565,7 +566,7 @@ export const CARDS = {
   }),
   qiankun: D({
     name: '乾坤', type: 'skill', cost: 2, rarity: 'rare', icon: 'chain', target: 'self',
-    text: '将手牌中随机一张攻击牌复制一份，复制品本回合费用为 0。',
+    text: '复制手牌中一张随机非 X 费攻击牌，复制品本回合免费。',
     vars: {}, up: {},
     play(B, t, v) {
       // X 费攻击牌不复制：免费复制品会以 0 层灵力空转
@@ -593,7 +594,7 @@ export const CARDS = {
   tianming: D({
     name: '天命', type: 'skill', cost: 2, rarity: 'rare', icon: 'seal', target: 'self',
     text: '本场战斗中灵力上限 +1。消耗。', vars: {}, up: {}, exhaust: true,
-    play(B, t, v) { B.player.energyMax += 1; B.gainEnergy(1); }
+    play(B, t, v) { B.apply(B.player, 'energyMax', 1); B.gainEnergy(1); }
   })
 };
 
@@ -617,7 +618,7 @@ export function cardName(card) {
 
 export function cardText(card) {
   const d = cardDef(card);
-  let t = d.text;
+  let t = card.up && d.textUp ? d.textUp : d.text;
   const v = cardVars(card);
   Object.keys(v).forEach((k) => { t = t.split('{' + k + '}').join(v[k]); });
   return t;

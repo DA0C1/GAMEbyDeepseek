@@ -44,7 +44,7 @@ export const POTIONS = {
   },
   huxin: {
     name: '护心丹', icon: 'moon', color: '#6b5a8a', target: 'self',
-    desc: '本回合受到的伤害减半。',
+    desc: '本回合受到的攻击伤害减半。',
     use(B) { B.apply(B.player, 'halve', 1); }
   },
   wumo: {
