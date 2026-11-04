@@ -74,3 +74,34 @@ test('cleansing vulnerability with wumo immediately refreshes attack intent numb
     'cleansing directly changes buffs, so the potion event must redraw intents');
   assert.deepEqual(battle.previewEnemyIntent(enemy).damageByHit, [8, 8]);
 });
+
+test('enemy healing immediately clears stale poison-death and imminent-phase intents', () => {
+  {
+    const { scene, battle, enemy, view, icons } = fixture('gudiao');
+    enemy.hp = 5; enemy.maxHp = 30; enemy.buffs.poison = 5;
+    scene.drawIntent(view);
+    assert.equal(icons.at(-1), 'skull');
+    assert.ok(view.intent.list.some(item => item.text === '将亡'));
+    battle.healEnemies(10);
+    assert.equal(enemy.hp, 15);
+    assert.equal(battle.previewEnemyIntent(enemy).willDie, false);
+    assert.equal(icons.at(-1), 'sword', 'healing redraws the surviving enemy attack');
+    assert.ok(!view.intent.list.some(item => item.text === '将亡'));
+  }
+  {
+    const { scene, battle, enemy, view, icons } = fixture('zhulong');
+    enemy.hp = 90; enemy.maxHp = 140; enemy.turn = 1;
+    enemy.move = pickMove(enemy); enemy.buffs.poison = 10;
+    scene.drawIntent(view);
+    assert.equal(icons.at(-1), 'sword');
+    assert.equal(battle.previewEnemyIntent(enemy).phaseChange, true);
+    battle.healEnemies(10);
+    const forecast = battle.previewEnemyIntent(enemy);
+    assert.equal(enemy.hp, 100);
+    assert.equal(!!enemy._phase2, false, 'healing does not change the live phase');
+    assert.equal(forecast.phaseChange, false);
+    assert.equal(forecast.move.type, 'defend');
+    assert.equal(icons.at(-1), 'shield', 'healing removes the now-impossible poison phase forecast');
+    assert.ok(view.intent.list.some(item => item.text === '+' + forecast.move.block));
+  }
+});

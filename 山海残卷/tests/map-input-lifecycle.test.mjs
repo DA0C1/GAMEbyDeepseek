@@ -37,8 +37,11 @@ test('initial map cannot accept a route before its delayed introduction is dismi
   assert.equal(scene._entering, false);
   view.flushTimers(300);
   assert.equal(scene._introOpen, true);
+  const introPulse = view.tweens.find(tween => tween.repeat === -1);
+  assert.ok(introPulse, 'the introduction has an active looping hint');
   scene.input.emit('pointerdown', pointer);
   assert.equal(scene._introOpen, false, 'this click only dismisses the introduction');
+  assert.equal(introPulse.canceled, true, 'dismissal stops the hint instead of retaining a dead target tween');
   assert.equal(run.map.cur.node, null);
   scene.input.emit('pointerdown', pointer);
   assert.equal(run.map.cur.node, first, 'the following click may enter the route');

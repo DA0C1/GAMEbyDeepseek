@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import { beforeEach, test } from 'node:test';
 import { fakeScene, installFakePhaser } from './helpers/fake-scene.mjs';
-import { uiButtons, flatten } from '../src/testing/ui-actions.js';
+import { uiButtons, flatten, modalOf, closeSceneOverlay } from '../src/testing/ui-actions.js';
 import { CARDS } from '../src/data/cards.js';
 import { RELICS } from '../src/data/relics.js';
 import { POTIONS } from '../src/data/potions.js';
+import { FOES } from '../src/data/enemies.js';
+import { PAGES, ARCHIVE } from '../src/data/story.js';
 import { run } from '../src/core/run.js';
 import { save } from '../src/core/save.js';
 import { setSeed, random } from '../src/core/random.js';
@@ -12,6 +14,7 @@ import { audio } from '../src/core/audio.js';
 
 installFakePhaser();
 const { ShopScene } = await import('../src/scenes/ShopScene.js');
+const { CodexScene } = await import('../src/scenes/CodexScene.js');
 const { pickCard } = await import('../src/ui/overlays.js');
 const { makeButton } = await import('../src/ui/widgets.js');
 globalThis.localStorage = { getItem: () => null, setItem() {} };
@@ -178,4 +181,118 @@ test('event actions expose option names and consequences despite separate label 
     assert.ok(buttons[i].label.includes(opt.hint), 'action includes the visible cost/consequence');
   }
   assert.equal(effectCalls, 0, 'reading decision metadata never chooses an option');
+});
+
+function codexFixture() {
+  const result = fixture(new CodexScene(), 'Codex');
+  const { scene } = result;
+  scene.init();
+  const graphics = scene.add.graphics;
+  scene.add.graphics = (...args) => {
+    const object = graphics(...args);
+    for (const method of ['arc', 'closePath', 'fillPath']) object[method] = function () { return this; };
+    return object;
+  };
+  return result;
+}
+
+test('all real Codex category controls have names and switch the requested tab', () => {
+  const { scene } = codexFixture();
+  scene.buildEntries(); scene.buildTabs(); scene.buildFooter(); scene.renderTab();
+  const labels = ['符箓', '异兽', '法宝', '药水', '残页', '卷宗', '五行'];
+  const tabs = scene._tabViews.map(view => buttonFor(scene, view.zone));
+  assert.equal(tabs.length, labels.length);
+  for (let i = 0; i < tabs.length; i++) {
+    assert.ok(tabs[i].label.replace(/\s/g, '').includes(labels[i]), labels[i]);
+    tabs[i].object.emit('pointerdown');
+    assert.equal(scene._tab, i, `action selects ${labels[i]}`);
+  }
+});
+
+test('known Codex entries expose named detail actions, unknown entries expose no spoiler action', () => {
+  const archive = ARCHIVE[0].items[0];
+  const cases = [
+    ['drawCardCell', 'cijian', CARDS.cijian],
+    ['drawFoeCell', 'shanxiao', FOES.shanxiao],
+    ['drawRelicCell', 'suanpan', RELICS.suanpan],
+    ['drawPotionCell', 'dali', POTIONS.dali],
+    ['drawPageCell', PAGES[0].id, PAGES[0]],
+    ['drawArchiveCell', archive.id, archive]
+  ];
+  for (const [method, id, def] of cases) {
+    for (const known of [false, true]) {
+      const { scene } = codexFixture();
+      const item = { id, def, known, section: ARCHIVE[0].section };
+      scene[method](item, 800, 240, 440, 220);
+      const actions = uiButtons(scene);
+      if (!known) {
+        assert.deepEqual(actions, [], `${method}: undiscovered entry has no detail or metadata action`);
+        continue;
+      }
+      assert.equal(actions.length, 1, method);
+      assert.ok(actions[0].label.includes(def.name || def.title), method);
+      if (method === 'drawCardCell') assert.equal(actions[0].card.id, id);
+      const beforeSave = JSON.stringify(save.data), beforePlayer = JSON.stringify(run.player);
+      setSeed(71); const expectedNext = random(); setSeed(71);
+      for (let n = 0; n < 5; n++) { uiButtons(scene); assert.equal(modalOf(scene), null); }
+      assert.equal(random(), expectedNext, `${method}: metadata does not consume RNG`);
+      assert.equal(JSON.stringify(save.data), beforeSave);
+      assert.equal(JSON.stringify(run.player), beforePlayer);
+      scene._tab = 3; scene._page = 1;
+      actions[0].object.emit('pointerdown');
+      assert.equal(modalOf(scene), 'detail', `${method}: detail is recognized by the AI close path`);
+      assert.ok(scene._detail, method);
+      assert.deepEqual(uiButtons(scene), [], 'detail blocker hides underlying item action');
+      if (method === 'drawPotionCell') {
+        assert.ok(scene._detail.list.some(object => object.text === POTIONS.dali.desc), 'new potion action opens its real full description');
+      }
+      const detail = scene._detail;
+      assert.equal(closeSceneOverlay(scene), true);
+      assert.equal(scene._detail, null);
+      assert.equal(detail.destroyed, true);
+      assert.equal(modalOf(scene), null);
+      assert.equal(scene._tab, 3, 'closing a detail preserves its category');
+      assert.equal(scene._page, 1, 'closing a detail preserves its page');
+      assert.equal(uiButtons(scene).length, 1);
+      assert.equal(closeSceneOverlay(scene), false, 'no modal means no accidental scene navigation');
+    }
+  }
+});
+
+test('Codex pagination endpoints are disabled actions and re-enable on valid pages', () => {
+  const { scene } = codexFixture();
+  scene.buildEntries(); scene.buildTabs(); scene.buildFooter(); scene.renderTab();
+  assert.equal(scene._page, 0);
+  assert.equal(scene._prevBtn.zone.input.enabled, false);
+  assert.equal(buttonFor(scene, scene._prevBtn.zone), undefined);
+  assert.equal(scene._nextBtn.zone.input.enabled, true);
+  assert.ok(buttonFor(scene, scene._nextBtn.zone));
+  scene.turnPage(1);
+  assert.equal(scene._prevBtn.zone.input.enabled, true);
+  assert.ok(buttonFor(scene, scene._prevBtn.zone));
+  for (let i = 0; i < 10; i++) scene.turnPage(1);
+  assert.equal(scene._nextBtn.zone.input.enabled, false);
+  assert.equal(buttonFor(scene, scene._nextBtn.zone), undefined);
+  const last = scene._page;
+  scene.turnPage(1);
+  assert.equal(scene._page, last);
+  scene.switchTab(4); // Nine pages fit one tab page.
+  assert.equal(scene._page, 0);
+  assert.equal(scene._prevBtn.zone.input.enabled, false);
+  assert.equal(scene._nextBtn.zone.input.enabled, false);
+});
+
+test('generic overlay close cannot skip a dialogue to dismiss a lower detail', () => {
+  const { scene } = codexFixture();
+  scene.showCard({ id: 'cijian', def: CARDS.cijian, known: true });
+  const detail = scene._detail;
+  let skipped = 0;
+  scene._dialogue = { close() { skipped++; } };
+  assert.equal(modalOf(scene), 'dialogue');
+  assert.equal(closeSceneOverlay(scene), false);
+  assert.equal(skipped, 0);
+  assert.ok(scene._detail === detail);
+  scene._dialogue = null;
+  assert.equal(closeSceneOverlay(scene), true);
+  assert.equal(detail.destroyed, true);
 });

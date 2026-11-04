@@ -29,3 +29,26 @@ test('treasure grants one reward, marks its node cleared, and returns to the map
   assert.deepEqual(view.transitions, [['Map']]);
   assert.equal(scene.input.enabled, false);
 });
+
+test('elite victory healing feedback reports the actual capped and difficulty-adjusted gain', async () => {
+  const { BattleScene } = await import('../src/scenes/BattleScene.js');
+  for (const [ascension, missing, expected] of [[0, 30, 6], [4, 30, 5], [0, 1, 1], [4, 0, 0]]) {
+    save.load(); run.newRun(); save.data.ascension = ascension;
+    run.player.hp = run.player.maxHp - missing;
+    const before = run.player.hp;
+    const scene = new BattleScene(); scene.init({ type: 'elite' });
+    const view = fakeScene(scene);
+    scene.battle = { damageDealt: 0, cardsPlayed: 0, bonusGold: 0, outHeal: 0 };
+    const messages = [];
+    scene.floatText = (_x, _y, text) => messages.push(text);
+    scene.onEnd('win');
+    assert.equal(run.player.hp - before, expected);
+    assert.deepEqual(messages.filter(text => text.startsWith('啖 肉')), expected ? ['啖 肉 +' + expected] : []);
+    assert.equal(run.stats.elites, 1);
+    scene.onEnd('win');
+    assert.equal(run.stats.elites, 1, 'replayed terminal callback grants nothing twice');
+    view.flushTimers(420);
+    assert.equal(view.transitions.length, 1);
+    assert.equal(view.transitions[0][0], 'Reward');
+  }
+});

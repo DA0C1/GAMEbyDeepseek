@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import { beforeEach, test } from 'node:test';
+import { EventEmitter } from 'node:events';
 import { fakeScene, installFakePhaser } from './helpers/fake-scene.mjs';
 import { Battle } from '../src/systems/battle.js';
 import { CARDS } from '../src/data/cards.js';
+import { RELICS } from '../src/data/relics.js';
 import { run } from '../src/core/run.js';
 import { save } from '../src/core/save.js';
 import { audio } from '../src/core/audio.js';
@@ -328,5 +330,149 @@ test('canceled mouse and touch drags clear stale targeting and allow the next ho
     assert.equal(cardView.hovered, true, `${input}: next hover is recognized as new`);
     assert.equal(cardView.scale, 1.24, `${input}: next hover lifts normally`);
     assert.equal(forecastVisible, true, `${input}: next hover shows a fresh forecast`);
+  }
+});
+
+function wirePointerEvents(scene, gameEvents = new EventEmitter()) {
+  scene.input = Object.assign(new EventEmitter(), { keyboard: new EventEmitter(), enabled: true });
+  scene.events = new EventEmitter();
+  scene.game = { events: gameEvents };
+  scene.sys = { game: scene.game };
+  scene.buildControls();
+}
+
+test('outside release and focus loss cancel real wired drag/selection without playing a card', () => {
+  for (const trigger of ['pointerupoutside', 'blur', 'hidden', 'touchcancel']) {
+    for (const interaction of ['drag', 'selection']) {
+      const { scene, battle, card } = fixture(undefined, 'cijian');
+      const cardView = scene.cardViews[0];
+      wirePointerEvents(scene);
+      scene.enemyViews = [{ foe: battle.enemies[0], x: 1100, y: 300, displayH: 300 }];
+      scene.highlightTarget = () => {};
+      let previewVisible = false;
+      scene.showDamagePreview = () => { previewVisible = true; scene.dmgPreview = [{}]; };
+      scene.hideDamagePreview = () => { previewVisible = false; scene.dmgPreview = []; };
+      const pointer = { worldX: cardView.x, worldY: cardView.y };
+      scene.input.emit('pointermove', pointer);
+      scene.input.emit('pointerdown', pointer);
+      if (interaction === 'selection') {
+        scene.input.emit('pointerup', pointer);
+        assert.ok(scene.selected === cardView, 'fixture enters the click-to-target mode');
+      } else {
+        scene.input.emit('pointermove', { worldX: 1100, worldY: 300 });
+        assert.ok(scene.dragging === cardView, 'fixture holds an active drag');
+      }
+      const beforeHp = battle.enemies[0].hp, beforeEnergy = battle.player.energy;
+      assert.equal(previewVisible, true);
+      // Even if supplied coordinates overlap an enemy, releasing off-canvas is
+      // cancellation, not a targeted drop. Blur cleanup is independent of locks.
+      if (trigger === 'pointerupoutside') scene.input.emit(trigger, { worldX: 1100, worldY: 300 });
+      else if (trigger === 'touchcancel') {
+        scene.uiLocked = interaction === 'selection';
+        scene.input.emit('pointerup', { worldX: 1100, worldY: 300, wasCanceled: true });
+      }
+      else { scene.uiLocked = true; scene.game.events.emit(trigger); }
+      const label = `${trigger}/${interaction}`;
+      assert.equal(scene.dragging, null, label);
+      assert.equal(scene.hovered, null, label);
+      assert.equal(scene.selected, null, label);
+      assert.equal(cardView.dragging, false, label);
+      assert.equal(cardView.hovered, false, label);
+      assert.equal(previewVisible, false, label);
+      assert.ok(battle.hand.includes(card), label + ': card stays in hand');
+      assert.equal(battle.player.energy, beforeEnergy, label + ': no energy spent');
+      assert.equal(battle.enemies[0].hp, beforeHp, label + ': no attack fired');
+      scene.events.emit('shutdown');
+    }
+  }
+});
+
+test('game focus listeners are removed on shutdown and do not accumulate across battle entries', () => {
+  const gameEvents = new EventEmitter();
+  let canceled = 0;
+  for (let entry = 0; entry < 4; entry++) {
+    const { scene } = fixture(undefined, 'cijian');
+    const cancel = scene.cancelCardInteraction.bind(scene);
+    scene.cancelCardInteraction = () => { canceled++; cancel(); };
+    wirePointerEvents(scene, gameEvents);
+    for (const event of ['blur', 'hidden']) assert.equal(gameEvents.listenerCount(event), 1, `entry ${entry}: one active ${event} listener`);
+    gameEvents.emit('blur');
+    gameEvents.emit('hidden');
+    assert.equal(canceled, 2 * (entry + 1));
+    scene.events.emit('shutdown');
+    for (const event of ['blur', 'hidden']) assert.equal(gameEvents.listenerCount(event), 0, `entry ${entry}: no ${event} listener retains stopped scene`);
+    gameEvents.emit('blur');
+    gameEvents.emit('hidden');
+    assert.equal(canceled, 2 * (entry + 1), 'stopped scenes no longer receive focus callbacks');
+  }
+});
+
+test('all-target UI entry points ignore incidental enemy selections for hooks and card flight', () => {
+  for (const suppliedTarget of [false, true]) {
+    const { scene, view, battle } = fixture(undefined, 'hengsao');
+    battle.player.relics = ['leigong', 'jianzhong'];
+    battle.relics = [
+      { id: 'leigong', def: RELICS.leigong, state: { used: false } },
+      { id: 'jianzhong', def: RELICS.jianzhong, state: { n: 2 } }
+    ];
+    const enemy = battle.enemies[0];
+    enemy.el = 'none'; enemy.hp = 16; enemy.maxHp = 100;
+    const cardView = scene.cardViews[0];
+    let eventTarget;
+    battle.on('cardPlayed', ({ target }) => { eventTarget = target; });
+    scene.playCard(cardView, suppliedTarget ? enemy : null);
+    assert.equal(enemy.hp, 2, 'six base damage plus eight third-attack damage');
+    assert.equal(enemy.alive, true, 'incidental target cannot add vulnerability before third-attack damage');
+    assert.equal(enemy.buffs.vuln || 0, 0);
+    assert.equal(battle.relics[0].state.used, false);
+    assert.equal(eventTarget, null, 'the engine reports the actual all-target semantics');
+    const flight = view.tweens.find(tween => tween.targets === cardView.container && tween.duration === 280);
+    assert.ok(flight);
+    assert.equal(flight.x, 800, 'all-target cards use the common central flight');
+    assert.equal(flight.y, 420);
+  }
+});
+
+test('a replacement pointer-down cannot leave the previous card marked as dragging', () => {
+  const { scene, battle } = fixture(undefined, 'cijian', 1);
+  wirePointerEvents(scene);
+  const [first, second] = scene.cardViews;
+  scene.input.emit('pointerdown', { worldX: first.x, worldY: first.y });
+  assert.ok(scene.dragging === first);
+  assert.equal(first.dragging, true);
+  // A second mouse button, hybrid mouse/touch, or an interrupted input sequence
+  // can produce another down before an up. Only one card may own the gesture.
+  scene.input.emit('pointerdown', { worldX: second.x, worldY: second.y });
+  assert.equal(first.dragging, false, 'old view cannot retain the drag depth/pose flag');
+  assert.ok(scene.dragging === second);
+  assert.equal(second.dragging, true);
+  assert.equal(battle.hand.length, 2, 'replacing a drag does not play either card');
+  scene.input.emit('pointerupoutside', {});
+  assert.equal(first.dragging, false);
+  assert.equal(second.dragging, false);
+  scene.events.emit('shutdown');
+});
+
+test('all battle control hit zones stay inside the logical canvas', () => {
+  const scene = new BattleScene();
+  scene.init({});
+  const view = fakeScene(scene);
+  const zone = scene.add.zone;
+  scene.add.zone = (x, y, width, height) => {
+    const object = zone(x, y, width, height);
+    // Preserve the actual constructor geometry; rendering is not exercised.
+    object.width = width;
+    object.height = height;
+    return object;
+  };
+  scene.buildControls();
+  for (const label of ['结束回合', '暂停', '牌组', '法宝']) {
+    const button = view.button(label);
+    assert.ok(button, label + ': real control exists');
+    const hit = button.zone;
+    assert.ok(hit.input.enabled, label + ': hit zone is active');
+    assert.ok(hit.x >= 0 && hit.y >= 0, label + ': starts inside canvas');
+    assert.ok(hit.x + hit.width <= 1600, label + ': right edge is inside canvas');
+    assert.ok(hit.y + hit.height <= 900, label + ': bottom edge is inside canvas');
   }
 });
