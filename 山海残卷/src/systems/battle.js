@@ -1,4 +1,4 @@
-import { random } from "../core/random.js";
+import { random, withIsolatedRandom } from "../core/random.js";
 /* 战斗规则（纯逻辑，通过事件通知表现层） */
 
 import { CARDS, cardVars } from '../data/cards.js';
@@ -30,6 +30,7 @@ export const BUFFS = {
   thorns: { name: '荆棘', icon: 'claw', color: '#5c5347' },
   riposte: { name: '反击', icon: 'sword', color: '#b23a2e' },
   halve: { name: '镜界', icon: 'moon', color: '#2f6b8a' },
+  energyMax: { name: '天命', icon: 'seal', color: '#b98f3f' },
   energyNext: { name: '蓄势', icon: 'talisman', color: '#b98f3f' },
   drawNext: { name: '守心', icon: 'lotus', color: '#41694a' },
   comboDmg: { name: '千机', icon: 'star', color: '#b98f3f' },
@@ -65,6 +66,7 @@ export class Battle extends Emitter {
     // X 费牌实际消耗的灵力；本回合已打出的攻击牌数
     this.lastX = 0;
     this.turnAttacks = 0;
+    this.turnCardsPlayed = 0;
     this.playerHurtThisTurn = false;
     // 笔意：连续同五行属性累积，满 3 张触发成势
     this.brushEl = null;
@@ -133,6 +135,7 @@ export class Battle extends Emitter {
 
   relicHook(name, ...args) {
     for (const r of this.relics) {
+      if (this.phase === 'lost' || this.finished) break;
       const h = r.def.hooks && r.def.hooks[name];
       if (h) {
         try { h(this, r.state, ...args); } catch (e) { console.error('[relic]', r.id, e); }
@@ -182,6 +185,7 @@ export class Battle extends Emitter {
 
   /* 成势：按五行给一次额外效果 */
   resolveSurge(el, target) {
+    if (this.phase === 'lost' || !this.player.alive || this.finished) return;
     const conf = ELEMENTS[el];
     if (!conf) return;
     this.surgeCount += 1;
@@ -203,125 +207,86 @@ export class Battle extends Emitter {
     this.emit('surge', { el, conf });
   }
 
-  /* 出牌前的伤害预演：用于界面提示，不改动任何状态 */
+  _cloneForSimulation() {
+    // 不调用构造器：构造器会掷初始血量、写入图鉴并消耗随机数。
+    // memo 保留牌堆/队列等共享引用关系，定义中的函数是只读的。
+    const memo = new Map();
+    const clone = (value) => {
+      if (!value || typeof value !== 'object') return value;
+      if (memo.has(value)) return memo.get(value);
+      const copy = Array.isArray(value) ? [] : Object.create(Object.getPrototypeOf(value));
+      memo.set(value, copy);
+      for (const key of Object.keys(value)) {
+        if (value === this && key === '_h') continue;
+        copy[key] = clone(value[key]);
+      }
+      return copy;
+    };
+    const sim = clone(this);
+    sim._h = {};
+    sim._simulation = true;
+    return { sim, copies: memo };
+  }
+
+  /* 出牌预演走同一套结算规则，但只操作隔离副本。 */
   previewDamage(card, target) {
-    if (!card || !target || !target.alive) return null;
-    const def = card.def;
-    if (!def) return null;
+    if (!card?.def || card.def.unplayable || !target?.alive || !this.hand.includes(card)) return null;
+    if (this.phase !== 'player' || this.finished) return null;
 
-    // 相克：先算好，成势那一段也吃
-    const em = this.elementMult(card, target);
+    const { sim, copies } = this._cloneForSimulation();
+    const simCard = copies.get(card), simTarget = copies.get(target);
+    if (!simTarget) return null;
 
-    // 成势预告：这张牌打出去会不会刚好凑满三张同属
-    const el = elOf(card);
-    const surgeReady = !!(el && this.brushEl === el && this.brushCount >= COMBO_NEED - 1);
-    const surge = surgeReady
-      ? { el, conf: ELEMENTS[el], dmg: el === 'jin' ? Math.max(0, Math.round(5 * em.mult)) : 0 }
-      : null;
+    // 灵力不足的普通牌仍可查看假设打出的结果；X 费永远使用当前灵力。
+    const playable = this.canPlay(card);
+    sim.canPlay = (candidate) => !candidate.def.unplayable;
+    let uncertain = false, randomTarget = false, surge = null;
+    const records = [], stack = [];
+    let inSurge = false;
+    sim.on('block', ({ target: t, amount, gain }) => {
+      const hit = stack[stack.length - 1];
+      if (hit && hit.target === t && !gain) hit.blocked += amount;
+    });
+    sim.on('damage', ({ target: t, amount }) => {
+      const hit = stack[stack.length - 1];
+      if (hit && hit.target === t) hit.effective += amount;
+    });
+    sim.damage = function (t, amount, opt = {}) {
+      if (!t || !t.alive || t.hp <= 0 || this.phase === 'lost' || !this.player.alive || this.finished) return 0;
+      const traits = t.def?.traits;
+      if (!opt.raw && (traits?.dodge || traits?.evasion)) uncertain = true;
+      const hit = { target: t, effective: 0, blocked: 0, surge: inSurge };
+      records.push(hit);
+      stack.push(hit);
+      try { return Battle.prototype.damage.call(this, t, amount, opt); }
+      finally { stack.pop(); }
+    };
+    sim.damageRandom = function (amount, times) {
+      if (this.aliveEnemies().length > 1) { randomTarget = true; uncertain = true; }
+      return Battle.prototype.damageRandom.call(this, amount, times);
+    };
+    sim.on('surge', ({ el, conf }) => { surge = { el, conf, dmg: 0 }; });
+    sim.resolveSurge = function (el, t) {
+      inSurge = true;
+      try { return Battle.prototype.resolveSurge.call(this, el, t); }
+      finally { inSurge = false; }
+    };
 
-    if (def.type !== 'attack') {
-      // 非攻击牌本体不造成伤害，但成势可能补一段
-      if (!surge || !surge.dmg) return null;
-      const blocked = Math.min(target.block, surge.dmg);
-      return {
-        per: 0, hits: 0, total: surge.dmg, blocked,
-        effective: surge.dmg - blocked,
-        lethal: target.hp <= surge.dmg - blocked,
-        surge, pureOnly: true, element: em
-      };
-    }
-
-    const v = cardVars(card);
-    // 特殊伤害牌自带基础伤害公式（灼烧/中毒/护甲/手牌数等）。
-    // 先模拟「这张牌已经离手」：手牌数 / 本回合出牌数都会进公式，出牌前后不一样。
-    const handIdx = this.hand.indexOf(card);
-    if (handIdx >= 0) this.hand.splice(handIdx, 1);
-    const ta0 = this.turnAttacks, cp0 = this.cardsPlayed;
-    if (def.type === 'attack') this.turnAttacks += 1;
-    this.cardsPlayed += 1;
-    // X 费牌：实际打出时消耗全部灵力，预览按「当前灵力 = X」模拟
-    const x0 = this.lastX;
-    if (def.cost < 0) this.lastX = this.player.energy;
-    let base = v.d;
-    if (typeof def.dmgOf === 'function') {
-      try { base = def.dmgOf(this, target, v, card); } catch (e) { base = v.d; }
-    }
-    let hits = 1;
-    // 段数必须由卡牌自己声明：{n} 在有些牌里是层数，不是段数
-    try {
-      if (typeof def.hitsOf === 'function') hits = Math.max(0, def.hitsOf(this, target, v, card));
-      else if (def.multi) hits = Math.max(1, v[def.multi] || 1);
-    } catch (e) { hits = 1; }
-    // 还原现场
-    if (handIdx >= 0) this.hand.splice(handIdx, 0, card);
-    this.turnAttacks = ta0;
-    this.cardsPlayed = cp0;
-    this.lastX = x0;
-    if (!base) return null;
-    if (!hits) return null;
-
-    // 逐段模拟 damage()：一次性法宝只在第一段生效，算完把法宝状态还原。
-    // 注意这里必须走实伤通道（preview=false）让「每回合首次」类钩子逐段消耗，
-    // 否则多段攻击每一段都吃到赤金印/断刃的首段加成，预览系统性高估；
-    // 副作用由下面的状态快照回滚兜底，悬停预览不会真的消耗法宝次数。
-    // 同时把 target.hp 临时替换为模拟血量：破军旗（血量<35% 增伤）这类
-    // 逐段读血量的钩子，实战里后段命中时血量已经下降，预览必须同步。
-    const saved = this.relics.map((r) => ({ ...r.state }));
-    const hpSaved = target.hp;
-    let simHp = target.hp;
-    let simBlock = def.pierce ? 0 : (target.block || 0);
-    let raw = 0, effSum = 0, per = 0, phaseCleared = false;
-    const ph = target.def && target.def.phases && target.def.phases[0];
-
-    for (let i = 0; i < hits; i++) {
-      target.hp = simHp; // 钩子读的是 target.hp，先推进到本段开打前的血量
-      let d = base + (this.player.buffs.str || 0);
-      if (card.rune === 'feng') d += 3;
-      if (this.player.buffs.weak > 0) d *= 0.75;
-      if (!def.pierce && target.buffs.vuln > 0) d *= 1.5;
-      d = this.calcDamage(card, d, target, false);
-      d *= em.mult;
-      d = Math.max(0, Math.round(d));
-      // 卸力：与 damage() 同序——每场战斗第一段 ceil 折半
-      if (i === 0 && target.def && target.def.traits && target.def.traits.firstHitHalved && !target._halvedOnce) {
-        d = Math.max(1, Math.ceil(d / 2));
-      }
-      // 护甲逐段结算：每段先吃当前护甲
-      let blk = Math.min(simBlock, d);
-      if (blk > 0) simBlock -= blk;
-      const eff = d - blk;
-      if (i === 0) per = d;
-      raw += d;
-      effSum += eff;
-      simHp -= eff;
-      // Boss 阶段转换：血量跌破阈值时护甲被清空（实战里常见的高估来源）
-      if (ph && !target._phase2 && simHp > 0 && simHp / target.maxHp <= ph.at) {
-        simBlock = 0;
-        phaseCleared = true;
-      }
-    }
-    target.hp = hpSaved; // 回滚模拟血量
-    this.relics.forEach((r, i) => { r.state = saved[i]; });
-
-    // 成势那一段在本体之后结算：成势是 pure 伤害，不吃本体的贯穿——
-    // 贯穿牌只豁免自己那几段，成势仍要吃护甲；
-    // 但若本体伤害已触发 Boss 阶段转换（护甲被清空），成势按无护甲算
-    let surgeEff = 0;
-    if (surge && surge.dmg) {
-      const surgeBlock = phaseCleared ? 0
-        : (def.pierce ? (target.block || 0) : simBlock);
-      surgeEff = Math.max(0, surge.dmg - surgeBlock);
-    }
-
-    const total = raw + (surge && surge.dmg ? surge.dmg : 0);
+    withIsolatedRandom(() => sim.playCard(simCard, card.def.target === 'enemy' ? simTarget : null));
+    const hits = records.filter(hit => hit.target === simTarget);
+    if (!hits.length && !randomTarget) return null;
+    const damageByHit = hits.map(hit => hit.effective + hit.blocked);
+    const total = damageByHit.reduce((sum, value) => sum + value, 0);
+    const blocked = hits.reduce((sum, hit) => sum + hit.blocked, 0);
+    if (surge) surge.dmg = hits.filter(hit => hit.surge)
+      .reduce((sum, hit) => sum + hit.effective + hit.blocked, 0);
     return {
-      per,
-      hits,
-      total,
-      blocked: def.pierce ? 0 : Math.max(0, raw - effSum),
-      effective: effSum + surgeEff,
-      lethal: target.hp <= effSum + surgeEff,
-      surge, element: em
+      per: damageByHit[0] || 0, hits: hits.length, damageByHit,
+      total, blocked, effective: total - blocked,
+      lethal: !uncertain && !simTarget.alive,
+      playerDefeated: !uncertain && !sim.player.alive,
+      uncertain, randomTarget, playable, surge,
+      pureOnly: card.def.type !== 'attack', element: this.elementMult(card, target)
     };
   }
 
@@ -379,6 +344,11 @@ export class Battle extends Emitter {
     return Math.max(0, c);
   }
 
+  // 永久破卷奖励与本场的天命/套装加成分开，避免临时上限污染后续战斗。
+  energyMax() {
+    return this.player.energyMax + (this.player.buffs.energyMax || 0) + (this.activeSets.seal ? 1 : 0);
+  }
+
   /* ---------------- 回合 ---------------- */
   startPlayerTurn(first) {
     this.phase = 'player';
@@ -392,7 +362,7 @@ export class Battle extends Emitter {
     this.drawPile.forEach(clearFree);
     this.discardPile.forEach(clearFree);
 
-    let energy = p.energyMax + (this.activeSets.seal ? 1 : 0);
+    let energy = this.energyMax();
     if (!first && p.buffs.energyNext) {
       energy += p.buffs.energyNext;
       delete p.buffs.energyNext;
@@ -402,6 +372,7 @@ export class Battle extends Emitter {
     if (first) this.relicHook('battleStart');
     if (this.activeSets.guard) this.block(4);
     this.turnAttacks = 0;
+    this.turnCardsPlayed = 0;
     this.playerHurtThisTurn = false;
     this.chainEl = null;
     this.chainDrawn = 0;
@@ -449,13 +420,18 @@ export class Battle extends Emitter {
     if (this.phase !== 'player' || this.finished) return;
     const p = this.player;
 
-    this.discardAll();
+    // 只结算结束回合时仍留在手里的诅咒，卡牌效果中的弃牌不受影响。
+    const heldCurses = this.hand.filter((card) => card.id === 'shigu_curse').length;
+    this.discardAll({ endTurn: true });
     this.relicHook('turnEnd');
     // 铁甲等回合末效果可能已经击败最后一只异兽，不能再进入敌方回合。
     if (this.phase === 'won' || this.phase === 'lost') return;
 
+    if (heldCurses) this.hurtPlayer(heldCurses * 2, { raw: true });
+    if (this.phase === 'lost') return;
+
     if (p.buffs.burn > 0) {
-      const bd = p.buffs.burn + this.burnBonus();
+      const bd = p.buffs.burn;
       this.hurtPlayer(bd, { raw: true });
       this.emit('burnTick', { target: p, amount: bd });
     }
@@ -514,10 +490,8 @@ export class Battle extends Emitter {
     }
   }
 
-  enemyAct(e) {
-    if (!e.alive || this.phase === 'won' || this.phase === 'lost' || this.finished) return;
-    const mv = e.move || pickMove(e);
-
+  prepareEnemyAction(e) {
+    if (!e.alive || e.hp <= 0 || this.phase === 'won' || this.phase === 'lost' || this.finished) return false;
     // 异兽护甲只维持到它自己的下一个回合（否则会永久叠加）
     if (e.block > 0) {
       e.block = 0;
@@ -534,7 +508,7 @@ export class Battle extends Emitter {
     if (e.buffs.burn > 0) {
       this.damage(e, e.buffs.burn + this.burnBonus(), { pierce: true, raw: true, silent: true, noThorns: true });
     }
-    if (!e.alive) { this.checkWin(); return; }
+    if (!e.alive) { this.checkWin(); return false; }
 
     e.turn += 1;
 
@@ -558,6 +532,14 @@ export class Battle extends Emitter {
       }
     }
 
+    return this.player.alive && this.phase !== 'lost';
+  }
+
+  enemyAct(e) {
+    if (!this.prepareEnemyAction(e)) return;
+    const tr = e.def && e.def.traits;
+    // 中毒/灼烧也可能触发二阶段，先完成回合初结算再读取新的意图。
+    const mv = e.move || pickMove(e);
     if (mv) {
       this.emit('enemyMove', { enemy: e, move: mv });
 
@@ -612,13 +594,9 @@ export class Battle extends Emitter {
   endEnemyTurn() {
     if (this.checkWin()) return;
     if (!this.player.alive) { this.lose(); return; }
-    // 反击与减伤要覆盖整个敌方回合，等敌人打完再递减
-    ['riposte', 'halve'].forEach((k) => {
-      if (this.player.buffs[k]) {
-        this.player.buffs[k] -= 1;
-        if (this.player.buffs[k] <= 0) delete this.player.buffs[k];
-      }
-    });
+    // 这两种效果只属于本回合。反击的数值是伤害，不是剩余回合数。
+    delete this.player.buffs.riposte;
+    delete this.player.buffs.halve;
     // 本轮刚施加的易伤要留给下一次敌方回合，避免一层易伤还没受击就过期。
     if (this._vulnAtEnemyStart > 0 && this.player.buffs.vuln > 0) {
       this.player.buffs.vuln -= 1;
@@ -630,7 +608,7 @@ export class Battle extends Emitter {
 
   /* ---------------- 数值 ---------------- */
   damage(target, amount, opt = {}) {
-    if (!target) return 0;
+    if (!target || this.phase === 'lost' || !this.player.alive || this.finished) return 0;
     const isPlayer = target === this.player;
     if (!isPlayer && (!target.alive || target.hp <= 0)) return 0;
     if (isPlayer && target.hp <= 0) return 0;
@@ -646,7 +624,7 @@ export class Battle extends Emitter {
         dmg += (p.buffs.str || 0);
         if (card && card.rune === 'feng') dmg += 3;
         if (p.buffs.weak > 0) dmg *= 0.75;
-        if (!opt.pierce && target.buffs.vuln > 0) dmg *= 1.5;
+        if (target.buffs.vuln > 0) dmg *= 1.5;
         dmg = this.calcDamage(card, dmg, target);
       }
       // 相克：五行克目标则增益，被目标所克则减伤
@@ -692,7 +670,7 @@ export class Battle extends Emitter {
     }
 
     // Boss 阶段转换
-    if (!isPlayer && !opt.raw && target.def && target.def.phases && !target._phase2 && target.hp > 0) {
+    if (!isPlayer && target.def && target.def.phases && !target._phase2 && target.hp > 0) {
       const ph = target.def.phases[0];
       if (ph && target.hp / target.maxHp <= ph.at) {
         target._phase2 = true;
@@ -721,11 +699,47 @@ export class Battle extends Emitter {
   }
 
   // 护甲前的单段受击数值，由实战、意图提示与 AI 可读状态共用。
-  incomingDamage(amount) {
+  incomingDamage(amount, buffs = this.player.buffs) {
     let dmg = Math.round(amount);
-    if (this.player.buffs.vuln > 0) dmg = Math.round(dmg * 1.5);
-    if (this.player.buffs.halve > 0) dmg = Math.ceil(dmg / 2);
+    if (buffs.vuln > 0) dmg = Math.round(dmg * 1.5);
+    if (buffs.halve > 0) dmg = Math.ceil(dmg / 2);
     return dmg;
+  }
+
+  // 先预演异兽行动前的毒/灼烧、阶段转换与光环。只针对该异兽当前状态，
+  // 前序敌人的行动仍可能改变结果；不会推进真实回合、随机数或图鉴。
+  previewEnemyIntent(enemy) {
+    const empty = { move: null, damageByHit: [], totalDamage: 0, phaseChange: false, willDie: false };
+    if (!enemy?.alive || enemy.hp <= 0) return empty;
+    const { sim, copies } = this._cloneForSimulation();
+    const foe = copies.get(enemy);
+    if (!foe) return empty;
+    return withIsolatedRandom(() => {
+      const ready = sim.prepareEnemyAction(foe);
+      const move = ready ? (foe.move || pickMove(foe)) : null;
+      const damageByHit = move ? sim.previewEnemyAttack(foe, move) : [];
+      return { move, damageByHit,
+        totalDamage: damageByHit.reduce((sum, value) => sum + value, 0),
+        phaseChange: !!foe._phase2 && !enemy._phase2,
+        willDie: !foe.alive, conditional: true };
+    });
+  }
+
+  // 连击中每段附带的易伤会影响下一段，不能简单显示首段 × 段数。
+  previewEnemyAttack(enemy, move = enemy.move) {
+    if (!move || !move.dmg) return [];
+    const buffs = { ...this.player.buffs };
+    const base = Math.round((move.dmg * (enemy.dmgMul || 1) + (enemy.buffs.str || 0))
+      * (enemy.buffs.weak > 0 ? 0.75 : 1));
+    const damage = [];
+    for (let i = 0; i < (move.hits || 1); i++) {
+      damage.push(this.incomingDamage(base, buffs));
+      if (move.playerBuff) {
+        const [name, stacks] = move.playerBuff;
+        buffs[name] = (buffs[name] || 0) + stacks;
+      }
+    }
+    return damage;
   }
 
   hurtPlayer(amount, opt = {}) {
@@ -752,9 +766,10 @@ export class Battle extends Emitter {
     return dmg;
   }
 
-  block(n) {
+  block(n, { ignoreDex = false } = {}) {
+    if (this.phase === 'lost' || !this.player.alive || this.finished) return;
     const p = this.player;
-    const v = n + (p.buffs.dex || 0);
+    const v = n + (ignoreDex ? 0 : (p.buffs.dex || 0));
     p.block += v;
     this.emit('block', { target: p, amount: v, gain: true });
   }
@@ -765,6 +780,7 @@ export class Battle extends Emitter {
   }
 
   heal(n) {
+    if (this.phase === 'lost' || !this.player.alive || this.finished) return 0;
     const p = this.player;
     const cut = save.ascensionMods().healCut || 1;
     const real = Math.max(0, Math.round(n * cut));
@@ -776,11 +792,13 @@ export class Battle extends Emitter {
   loseHp(n) { this.hurtPlayer(n, { raw: true }); }
 
   gainEnergy(n) {
+    if (this.phase === 'lost' || !this.player.alive || this.finished) return;
     this.player.energy += n;
     this.emit('energy', { amount: n });
   }
 
   draw(n) {
+    if (this.phase === 'lost' || !this.player.alive || this.finished) return;
     for (let i = 0; i < n; i++) {
       if (this.hand.length >= 10) break;
       if (!this.drawPile.length) {
@@ -797,18 +815,22 @@ export class Battle extends Emitter {
     }
   }
 
-  discardAll() {
-    while (this.hand.length) this.discardPile.push(this.hand.pop());
+  discardAll({ endTurn = false } = {}) {
+    while (this.hand.length) {
+      const card = this.hand.pop();
+      (endTurn && card.def.exhaustAtTurnEnd ? this.exhaustPile : this.discardPile).push(card);
+    }
     this.emit('discardAll');
   }
 
   apply(target, name, stacks) {
-    if (!target || stacks <= 0) return;
+    if (!target || stacks <= 0 || this.phase === 'lost' || !this.player.alive || this.finished) return;
+    if (target !== this.player && !target.alive) return;
     const tr = target.def && target.def.traits;
     if (tr && tr.immune && tr.immune.indexOf(name) >= 0) return;
     let s = stacks;
     if (name === 'poison' && target !== this.player) s += (this.player.buffs.toxic || 0);
-    if (name === 'burn' && this.activeSets.fire) s += 1;
+    if (name === 'burn' && target !== this.player && this.activeSets.fire) s += 1;
     target.buffs[name] = (target.buffs[name] || 0) + s;
     this.relicHook('applyBuff', target, name, s);
     this.emit('buff', { target, name, stacks: s });
@@ -882,7 +904,7 @@ export class Battle extends Emitter {
     if (idx < 0) return false;
 
     // 先确定目标：避免扣掉灵力与手牌后才发现没有可打的目标
-    let t = target;
+    let t = card.def.target === 'enemy' ? target : null;
     if (card.def.target === 'enemy') {
       if (!t || !t.alive) t = this.enemies.find((e) => e.alive);
       if (!t) return false;
@@ -896,7 +918,8 @@ export class Battle extends Emitter {
 
     this.playingCard = card;
     this.cardsPlayed += 1;
-    save.seeCard(card.id);
+    this.turnCardsPlayed += 1;
+    if (!this._simulation) save.seeCard(card.id);
 
     // 笔意：同属相连，三张成势
     const el = elOf(card);
@@ -936,6 +959,14 @@ export class Battle extends Emitter {
 
     this.playingCard = null;
 
+    // 牌的本体可能被反噬或自损击杀。只收妥已打出的牌，不再回手、
+    // 抽牌、成势或触发法宝；胜利时的吞噬治疗等正常击杀收益仍保留。
+    if (this.phase === 'lost' || !this.player.alive) {
+      (card.def.exhaust || card.temp ? this.exhaustPile : this.discardPile).push(card);
+      this.emit('cardPlayed', { card, target: t, cost });
+      return true;
+    }
+
     // 铭刻·其余
     if (card.rune === 'hu') this.block(4);
     if (card.rune === 'xun') this.draw(1);
@@ -953,19 +984,22 @@ export class Battle extends Emitter {
     if (surge) this.resolveSurge(el, t);
 
     let keep = false;
-    if (card.rune === 'hui' && !card._echoUsed) {
+    if (card.rune === 'hui' && !card._echoUsed && this.player.alive && this.phase !== 'lost') {
       card._echoUsed = true;
-      keep = true;
-      this.hand.push(card);
-      this.emit('echoReturn', { card });
+      // 抽牌等后续效果可能已补满手牌，回响不能突破十张上限。
+      if (this.hand.length < 10) {
+        keep = true;
+        this.hand.push(card);
+        this.emit('echoReturn', { card });
+      }
     }
     if (!keep) {
       if (card.def.exhaust || card.temp) this.exhaustPile.push(card);
       else this.discardPile.push(card);
     }
 
-    this.relicHook('cardPlayed', card, target);
-    this.emit('cardPlayed', { card, target, cost });
+    this.relicHook('cardPlayed', card, t);
+    this.emit('cardPlayed', { card, target: t, cost });
 
     this.checkWin();
     return true;
