@@ -1,10 +1,25 @@
-/* AI 页的界面动作读取：不初始化 DOM，也不修改场景。 */
+/* AI 页的界面动作与浮层适配：不初始化 DOM，读取函数不修改场景。 */
 import { CARDS, cardText } from '../data/cards.js';
 import { RUNES } from '../data/runes.js';
 
 const cardIdsByLength = Object.keys(CARDS).sort((a, b) => b.length - a.length);
 const objectIds = new WeakMap();
 let nextId = 1;
+
+export function modalOf(scene) {
+  return scene?._dialogue ? 'dialogue' : scene?._rules ? 'rules' : scene?._detail ? 'detail'
+    : scene?._pauseLayer ? 'pause' : scene?._codex || scene?._deckPanel ? 'deck' : null;
+}
+
+export function closeSceneOverlay(scene) {
+  if (!scene || scene._dialogue) return false;
+  if (scene._rules) { scene._rules.close(); return true; }
+  if (scene._detail && scene.closeDetail) { scene.closeDetail(); return true; }
+  const handle = scene._codex || scene._deckPanel;
+  if (handle) { handle.close(); return true; }
+  if (scene._pauseLayer && scene.hidePause) { scene.hidePause(); return true; }
+  return false;
+}
 
 export function flatten(scene) {
   const entries = [];
@@ -43,4 +58,3 @@ export function uiButtons(scene) {
       return { id: objectIds.get(object), label, ...(cardInfo ? { card: cardInfo } : {}), object };
     });
 }
-

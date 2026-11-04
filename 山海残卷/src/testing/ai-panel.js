@@ -6,7 +6,7 @@ import { CARDS, cardText } from '../data/cards.js';
 import { RELICS } from '../data/relics.js';
 import { POTIONS } from '../data/potions.js';
 
-import { flatten, uiButtons } from './ui-actions.js';
+import { flatten, uiButtons, modalOf, closeSceneOverlay } from './ui-actions.js';
 
 const log = [];
 const status = document.getElementById('ai-status');
@@ -19,8 +19,7 @@ function state() {
   if (!scene) return { ready: false };
   const battle = scene.battle;
   const player = run.player;
-  const modal = scene._dialogue ? 'dialogue' : scene._rules ? 'rules' : scene._pauseLayer ? 'pause'
-    : scene._codex || scene._deckPanel ? 'deck' : null;
+  const modal = modalOf(scene);
   const blocked = !!modal || !!scene.uiLocked;
   const continueScene = !!scene._introOpen || (scene.sys.settings.key === 'Event' && scene._chosen && scene.input.listenerCount('pointerdown') > 0);
   return {
@@ -91,7 +90,7 @@ function act(action) {
         const target = scene.battle.enemies.find((enemy) => enemy.uid === action.target && enemy.alive);
         requireCondition(view && scene.battle.canPlay(card), '卡牌无效或灵力不足');
         requireCondition(card.def.target !== 'enemy' || target, '请指定存活目标');
-        scene.playCard(view, target || null);
+        scene.playCard(view, card.def.target === 'enemy' ? target : null);
         break;
       }
       case 'end_turn': requireCondition(scene.battle && !scene.isInputBlocked(), '当前不能结束回合'); scene.endTurn(); break;
@@ -107,9 +106,7 @@ function act(action) {
         else { requireCondition(!!scene.openCodex, '当前场景没有牌组入口'); scene.openCodex('cards'); }
         break;
       case 'close_overlay': {
-        const handle = scene._rules || scene._codex || scene._deckPanel;
-        if (handle) handle.close();
-        else { requireCondition(scene._pauseLayer, '当前没有可关闭面板'); scene.hidePause(); }
+        requireCondition(closeSceneOverlay(scene), '当前没有可关闭面板');
         break;
       }
       case 'route': {
