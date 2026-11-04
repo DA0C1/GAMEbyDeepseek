@@ -386,7 +386,10 @@ export class MapScene extends Phaser.Scene {
     this.tweens.add({ targets: hint, alpha: 0.35, duration: 900, yoyo: true, repeat: -1 });
 
     this.input.once('pointerdown', () => {
-      objs.forEach((o) => o.destroy());
+      objs.forEach((o) => {
+        this.tweens.killTweensOf(o);
+        o.destroy();
+      });
       this._introOpen = false;
       this.cameras.main.flash(300, 239, 230, 212);
     });

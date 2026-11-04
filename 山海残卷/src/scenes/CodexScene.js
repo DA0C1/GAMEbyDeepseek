@@ -168,6 +168,7 @@ export class CodexScene extends Phaser.Scene {
       });
       const zone = this.add.zone(x, 122, tw, 74).setOrigin(0, 0)
         .setInteractive({ useHandCursor: true }).setDepth(DEPTH.scene + 2);
+      zone.setData('aiLabel', '图鉴分类 · ' + t.label.replace(/\s/g, ''));
       zone.on('pointerdown', () => { this.switchTab(i); });
       zone.on('pointerover', () => { if (this._tab !== i) label.setColor(PAL.cinnabar); });
       zone.on('pointerout', () => { if (this._tab !== i) label.setColor('rgba(58,52,44,0.5)'); });
@@ -272,8 +273,14 @@ export class CodexScene extends Phaser.Scene {
       `${lead}已识 ${known} / ${items.length} ${tab.unit}　·　全卷 ${allKnown} / ${allTotal}` +
       (done ? '　·　此卷已尽' : '')
     );
-    if (this._prevBtn) this._prevBtn.setAlpha(this._page > 0 ? 1 : 0.3);
-    if (this._nextBtn) this._nextBtn.setAlpha(this._page < totalPages - 1 ? 1 : 0.3);
+    if (this._prevBtn) {
+      this._prevBtn.setAlpha(this._page > 0 ? 1 : 0.3);
+      this._prevBtn.zone.input.enabled = this._page > 0;
+    }
+    if (this._nextBtn) {
+      this._nextBtn.setAlpha(this._page < totalPages - 1 ? 1 : 0.3);
+      this._nextBtn.zone.input.enabled = this._page < totalPages - 1;
+    }
 
     if (tab.key === 'elements') {
       this._pageText.setText('1 / 1');
@@ -454,6 +461,8 @@ export class CodexScene extends Phaser.Scene {
       this._content.push(img);
       const zone = this.add.zone(cx - cw / 2, y, cw, ch).setOrigin(0, 0)
         .setInteractive({ useHandCursor: true }).setDepth(DEPTH.scene + 2);
+      zone.setData('aiLabel', '查看符箓 · ' + item.def.name);
+      zone.setData('aiCard', { id: item.id, up: false, def: item.def });
       zone.on('pointerover', () => img.setDisplaySize(cw * 1.05, ch * 1.05));
       zone.on('pointerout', () => img.setDisplaySize(cw, ch));
       zone.on('pointerdown', () => this.showCard(item));
@@ -525,6 +534,7 @@ export class CodexScene extends Phaser.Scene {
       }));
       const zone = this.add.zone(cx - cellW / 2 + 6, cy, cellW - 12, 274).setOrigin(0, 0)
         .setInteractive({ useHandCursor: true }).setDepth(DEPTH.scene + 2);
+      zone.setData('aiLabel', '查看异兽 · ' + item.def.name);
       zone.on('pointerdown', () => this.showFoe(item));
       this._content.push(zone);
     } else {
@@ -577,6 +587,7 @@ export class CodexScene extends Phaser.Scene {
       }));
       const zone = this.add.zone(x, y, w, h).setOrigin(0, 0)
         .setInteractive({ useHandCursor: true }).setDepth(DEPTH.scene + 3);
+      zone.setData('aiLabel', '查看法宝 · ' + item.def.name);
       zone.on('pointerdown', () => this.showRelic(item));
       this._content.push(zone);
     } else {
@@ -615,6 +626,11 @@ export class CodexScene extends Phaser.Scene {
         originX: 0.5, font: FONT.hei, color: 'rgba(58,52,44,0.62)',
         align: 'center', wrap: w - 40, lineSpacing: 4, depth: DEPTH.scene + 1
       }));
+      const zone = this.add.zone(x, y, w, h).setOrigin(0, 0)
+        .setInteractive({ useHandCursor: true }).setDepth(DEPTH.scene + 2);
+      zone.setData('aiLabel', '查看药水 · ' + item.def.name);
+      zone.on('pointerdown', () => this.showPotion(item));
+      this._content.push(zone);
     }
   }
 
@@ -647,6 +663,7 @@ export class CodexScene extends Phaser.Scene {
       const zone = this.add.zone(x, y, w, h).setOrigin(0, 0)
         .setInteractive({ useHandCursor: true }).setDepth(DEPTH.scene + 2);
       zone.on('pointerdown', () => this.showPage(item));
+      zone.setData('aiLabel', '查看残页 · ' + item.def.title);
       this._content.push(zone);
     } else {
       this._content.push(text(this, cx, y + h / 2, '未　得', 18, {
@@ -683,6 +700,7 @@ export class CodexScene extends Phaser.Scene {
       const zone = this.add.zone(x, y, w, h).setOrigin(0, 0)
         .setInteractive({ useHandCursor: true }).setDepth(DEPTH.scene + 2);
       zone.on('pointerdown', () => this.showArchive(item));
+      zone.setData('aiLabel', '查看卷宗 · ' + item.def.title);
       this._content.push(zone);
     } else {
       this._content.push(text(this, cx, y + h / 2, '未　闻', 18, {
@@ -718,7 +736,7 @@ export class CodexScene extends Phaser.Scene {
     }
     layer.add(this.add.text(x + 56, y + (item.def.sub ? 162 : 134), item.def.text, {
       fontFamily: FONT.song, fontSize: '20px', color: 'rgba(29,26,23,0.86)',
-      wordWrap: { width: w - 112 }, lineSpacing: 15
+      wordWrap: { width: w - 112, useAdvancedWrap: true }, lineSpacing: 15
     }));
     layer.add(this.add.text(W / 2, H - 52, '点击任意处合上', {
       fontFamily: FONT.hei, fontSize: '13px', color: 'rgba(232,220,192,0.4)'
@@ -801,7 +819,7 @@ export class CodexScene extends Phaser.Scene {
 
     layer.add(this.add.text(left, 366, item.def.lore || '', {
       fontFamily: FONT.hei, fontSize: '17px', color: 'rgba(234,226,211,0.94)',
-      wordWrap: { width: 720 }, lineSpacing: 8
+      wordWrap: { width: 720, useAdvancedWrap: true }, lineSpacing: 8
     }));
 
     // 经文：《山海经》原文（较正文更全的旧抄），有则附一行
@@ -809,7 +827,7 @@ export class CodexScene extends Phaser.Scene {
     if (jing && jing !== item.def.lore) {
       layer.add(this.add.text(left, 404, `经　「${jing}」`, {
         fontFamily: FONT.song, fontSize: '14px', color: 'rgba(202,191,169,0.62)',
-        wordWrap: { width: 720 }, lineSpacing: 6
+        wordWrap: { width: 720, useAdvancedWrap: true }, lineSpacing: 6
       }));
     }
 
@@ -896,7 +914,7 @@ export class CodexScene extends Phaser.Scene {
     }
     layer.add(this.add.text(x + 174, y + 150, item.def.desc, {
       fontFamily: FONT.hei, fontSize: '19px', color: 'rgba(232,222,204,0.9)',
-      wordWrap: { width: w - 230 }, lineSpacing: 9
+      wordWrap: { width: w - 230, useAdvancedWrap: true }, lineSpacing: 9
     }));
     layer.add(this.add.text(W / 2, H - 60, '点击任意处合上', {
       fontFamily: FONT.hei, fontSize: '13px', color: 'rgba(232,220,192,0.4)'
@@ -928,7 +946,7 @@ export class CodexScene extends Phaser.Scene {
     }));
     layer.add(this.add.text(x + 166, y + 164, item.def.desc, {
       fontFamily: FONT.hei, fontSize: '19px', color: 'rgba(232,222,204,0.9)',
-      wordWrap: { width: w - 220 }, lineSpacing: 9
+      wordWrap: { width: w - 220, useAdvancedWrap: true }, lineSpacing: 9
     }));
     layer.add(this.add.text(W / 2, H / 2 + 190, '点击任意处合上', {
       fontFamily: FONT.hei, fontSize: '13px', color: 'rgba(232,220,192,0.4)'
@@ -954,7 +972,7 @@ export class CodexScene extends Phaser.Scene {
     }));
     layer.add(this.add.text(x + 56, y + 110, item.def.text, {
       fontFamily: FONT.song, fontSize: '20px', color: 'rgba(29,26,23,0.86)',
-      wordWrap: { width: w - 112 }, lineSpacing: 14
+      wordWrap: { width: w - 112, useAdvancedWrap: true }, lineSpacing: 14
     }));
     layer.add(this.add.text(W / 2, H - 52, '点击任意处合上', {
       fontFamily: FONT.hei, fontSize: '13px', color: 'rgba(232,220,192,0.4)'

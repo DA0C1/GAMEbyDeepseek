@@ -53,22 +53,25 @@ export class RewardScene extends Phaser.Scene {
     const c = this.add.container(x, y + 34).setDepth(DEPTH.scene + 4).setAlpha(0);
 
     const g = this.add.graphics();
-    g.fillStyle(0xfdfaf3, 0.96);
-    g.fillRoundedRect(-170, -26, 340, 52, 6);
-    g.lineStyle(1.4, Phaser.Display.Color.HexStringToColor(def.color).color, 0.7);
-    g.strokeRoundedRect(-170, -26, 340, 52, 6);
     c.add(g);
 
     c.add(this.add.text(-146, 0, '得', {
       fontFamily: FONT.song, fontSize: '20px', color: def.color
     }).setOrigin(0.5));
-    c.add(this.add.text(-118, -14, def.name, {
+    const name = this.add.text(-118, -14, def.name, {
       fontFamily: FONT.song, fontSize: '20px', color: PAL.ink
-    }));
-    c.add(this.add.text(-118, 8, def.desc, {
+    });
+    c.add(name);
+    const description = this.add.text(-118, name.y + name.height + 4, def.desc, {
       fontFamily: FONT.hei, fontSize: '12px', color: 'rgba(58,52,44,0.7)',
-      wordWrap: { width: 268 }
-    }));
+      wordWrap: { width: 268, useAdvancedWrap: true }
+    });
+    c.add(description);
+    const height = Math.max(52, description.y + description.height + 10 + 26);
+    g.fillStyle(0xfdfaf3, 0.96);
+    g.fillRoundedRect(-170, -26, 340, height, 6);
+    g.lineStyle(1.4, Phaser.Display.Color.HexStringToColor(def.color).color, 0.7);
+    g.strokeRoundedRect(-170, -26, 340, height, 6);
 
     this.tweens.add({
       targets: c, y, alpha: 1, duration: 420, ease: 'Cubic.easeOut',
@@ -153,14 +156,18 @@ export class RewardScene extends Phaser.Scene {
       };
       drawGlow(false);
 
+      const baseScaleX = img.scaleX, baseScaleY = img.scaleY;
       img.on('pointerover', () => {
+        if (this.picked) return;
+        this.tweens.killTweensOf(img);
         drawGlow(true);
-        this.tweens.add({ targets: img, scaleX: img.scaleX * 1.04, scaleY: img.scaleY * 1.04, duration: 140 });
+        this.tweens.add({ targets: img, scaleX: baseScaleX * 1.04, scaleY: baseScaleY * 1.04, duration: 140 });
         audio.sfx('hover');
       });
       img.on('pointerout', () => {
+        this.tweens.killTweensOf(img);
         drawGlow(false);
-        img.setDisplaySize(cw, ch);
+        img.setScale(baseScaleX, baseScaleY);
       });
       img.on('pointerdown', () => {
         if (this.picked) return;

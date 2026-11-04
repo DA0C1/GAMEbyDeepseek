@@ -20,6 +20,8 @@ import { createBossLyrics } from '../ui/lyrics.js';
 import { BOSS_LYRICS } from '../data/bossLyrics.js';
 import { burst, damageNumber, shake, inkSplash, flash, EL_HEX, slashArc, tintFlash, zoomPunch } from '../core/fx.js';
 
+const PLAYER_HUD = { x: 54, y: 40, w: 356, minH: 146, buffX: 22, buffY: 72, columns: 9, cell: 30, step: 36 };
+
 class CardView {
   constructor(scene, card, battle) {
     this.scene = scene;
@@ -104,6 +106,7 @@ export class BattleScene extends Phaser.Scene {
     this._rules = null;
     this._codex = null;
     this._dialogue = null;
+    this._pendingTalk = null;
     this.dmgPreview = [];
     this.brushT = null;
     this.potionLayer = null;
@@ -155,7 +158,7 @@ export class BattleScene extends Phaser.Scene {
 
     this.time.delayedCall(620, () => {
       // 开场动画结束不代表剧情已经结束；不能覆盖对话持有的输入锁。
-      if (!this._dialogue && !this._ended) this.uiLocked = false;
+      if (!this._dialogue && !this._pendingTalk && !this._ended) this.uiLocked = false;
       this.refreshHand();
     });
 
@@ -290,12 +293,15 @@ export class BattleScene extends Phaser.Scene {
       audio.sfx('heal');
       this.refreshPlayerHud();
       this.refreshEnemyBars();
+      // 同伴治疗可能解除毒/灼烧的将亡或换阶段预告。
+      this.updateEnemyIntents();
     });
     B.on('buff', ({ target, name, stacks }) => {
       const info = BUFFS[name] || { name };
       const isP = target === this.battle.player;
       const pos = isP ? { x: 300, y: 500 } : (this.enemyViews.find((v) => v.foe === target) || { x: 1000, y: 400 });
-      this.floatText(pos.x, pos.y - 70, info.name + ' +' + stacks, isP ? PAL.gold : PAL.ink3, 22);
+      const change = stacks > 0 ? ' +' + stacks : stacks < 0 ? ' ' + stacks : ' 已清除';
+      this.floatText(pos.x, pos.y - 70, info.name + change, isP ? PAL.gold : PAL.ink3, 22);
       audio.sfx(isP ? 'buff' : 'debuff');
       this.refreshBuffs();
     });
@@ -315,6 +321,7 @@ export class BattleScene extends Phaser.Scene {
       this.hideDamagePreview();
       const ev = this.enemyViews.find((v) => v.foe === enemy);
       if (ev) {
+        this.stopTraitPulse(ev);
         this.hideIntentTip();
         if (this.hoverFoe === enemy) this.hoverFoe = null;
         ev.img.disableInteractive();
@@ -343,7 +350,7 @@ export class BattleScene extends Phaser.Scene {
       const ev = this.enemyViews.find((v) => v.foe === target);
       if (!ev) return;
       this.floatText(ev.x, ev.y - ev.displayH * 0.28, text, PAL.cinnabar, 24);
-      this.tweens.add({ targets: ev.img, scaleX: ev.img.scaleX * 1.04, scaleY: ev.img.scaleY * 1.04, duration: 90, yoyo: true });
+      this.pulseTrait(ev);
     });
     B.on('bossPhase', ({ enemy, phase }) => {
       const ev = this.enemyViews.find((v) => v.foe === enemy);
@@ -351,6 +358,7 @@ export class BattleScene extends Phaser.Scene {
       shake(this, 0.012, 420);
       this.cameras.main.flash(300, 178, 58, 46, false);
       if (ev) {
+        this.stopTraitPulse(ev);
         this.floatText(ev.x, ev.y - ev.displayH * 0.4, phase.name, PAL.cinnabar, 44);
         const key2 = 'foe_' + enemy.id + '_2';
         if (this.textures.exists(key2)) {
@@ -359,8 +367,15 @@ export class BattleScene extends Phaser.Scene {
           this.tweens.add({
             targets: img, alpha: 0, duration: 260,
             onComplete: () => {
+              this.stopTraitPulse(ev);
               img.setTexture(key2);
-              img.setDisplaySize(ev.displayW, ev.displayH);
+              // 二阶段画稿的宽高比可能不同；沿用原立绘框并等比容纳，
+              // 不把烛龙等新形体横向拉宽，也不挤动血条与意图。
+              const source = this.textures.get(key2).getSourceImage();
+              const scale = source?.width > 0 && source?.height > 0
+                ? Math.min(ev.displayW / source.width, ev.displayH / source.height) : null;
+              img.setDisplaySize(scale ? source.width * scale : ev.displayW,
+                scale ? source.height * scale : ev.displayH);
               img.setAlpha(0);
               this.tweens.add({ targets: img, alpha: 0.94, duration: 520, ease: 'Cubic.easeOut' });
             }
@@ -439,6 +454,36 @@ export class BattleScene extends Phaser.Scene {
   }
 
   /* ---------------- 敌人 ---------------- */
+  stopTraitPulse(view) {
+    const pulse = view.traitTween;
+    view.traitTween = null;
+    pulse?.stop();
+    pulse?.remove();
+    if (view.traitScale) {
+      view.img.setScale(view.traitScale.x, view.traitScale.y);
+      view.traitScale = null;
+    }
+  }
+
+  pulseTrait(view) {
+    // 重叠的 yoyo 会把上一拍的放大值当作新基线；仅取消特性脉冲，
+    // 不干扰入场、换相淡入或受击位移动画。
+    this.stopTraitPulse(view);
+    const base = { x: view.img.scaleX, y: view.img.scaleY };
+    view.traitScale = base;
+    const pulse = this.tweens.add({
+      targets: view.img, scaleX: base.x * 1.04, scaleY: base.y * 1.04,
+      duration: 90, yoyo: true,
+      onComplete: () => {
+        if (view.traitTween !== pulse) return;
+        view.img.setScale(base.x, base.y);
+        view.traitScale = null;
+        view.traitTween = null;
+      }
+    });
+    view.traitTween = pulse;
+  }
+
   buildEnemies() {
     const list = this.battle.aliveEnemies();
     const n = list.length;
@@ -555,7 +600,9 @@ export class BattleScene extends Phaser.Scene {
 
       // 点击选中为目标
       img.setInteractive({ useHandCursor: true });
-      img.on('pointerdown', () => this.onEnemyClick(foe));
+      img.on('pointerdown', (pointer, _x, _y, event) => {
+        if (this.onEnemyClick(foe, pointer)) event?.stopPropagation();
+      });
       img.on('pointerover', () => { this.hoverFoe = foe; });
       img.on('pointerout', () => { if (this.hoverFoe === foe) this.hoverFoe = null; });
 
@@ -808,7 +855,7 @@ export class BattleScene extends Phaser.Scene {
     }).setDepth(DEPTH.entities + 1).setStroke('#f7efdd', 4);
 
     /* ---------- 左上：卷轴式状态牌 ---------- */
-    const hx = 54, hy = 40, hw = 356, hh = 146;
+    const { x: hx, y: hy, w: hw, minH: hh } = PLAYER_HUD;
     const panel = this.add.graphics().setDepth(DEPTH.hud - 1);
     panel.fillStyle(0xfdfaf3, 0.82);
     panel.fillRoundedRect(hx, hy, hw, hh, 4);
@@ -851,14 +898,15 @@ export class BattleScene extends Phaser.Scene {
     // 护甲
     this.blockT = text(this, hx + 330, hy + 16, '', 15, { font: FONT.hei, color: PAL.azure, originX: 1 });
 
-    this.buffLayer = this.add.container(hx + 22, hy + 72).setDepth(DEPTH.hud + 2);
+    this.buffLayer = this.add.container(hx + PLAYER_HUD.buffX, hy + PLAYER_HUD.buffY).setDepth(DEPTH.hud + 2);
 
     // 套装共鸣
     const sets = Object.keys(this.battle.activeSets || {});
+    this.hudSetT = null;
     if (sets.length) {
       const names = sets.map((k) => RELIC_SETS[k].name).join(' · ');
-      text(this, hx + 22, hy + 116, '共鸣  ' + names, 14, {
-        font: FONT.hei, color: PAL.gold
+      this.hudSetT = text(this, hx + 22, hy + 116, '共鸣  ' + names, 14, {
+        font: FONT.hei, color: PAL.gold, wrap: hw - 44, lineSpacing: 3
       });
     }
 
@@ -926,20 +974,21 @@ export class BattleScene extends Phaser.Scene {
     Object.keys(p.buffs || {}).forEach((k) => {
       if (p.buffs[k] > 0 && BUFFS[k]) {
         const info = BUFFS[k];
-        const bw = 30, step = 36;
+        const { cell: bw, step, columns } = PLAYER_HUD;
+        const x = (i % columns) * step, y = Math.floor(i / columns) * step;
         const col = Phaser.Display.Color.HexStringToColor(info.color).color;
         const g = this.add.graphics();
         g.fillStyle(0xfdfaf3, 0.95);
-        g.fillRoundedRect(i * step, 0, bw, bw, 3);
+        g.fillRoundedRect(x, y, bw, bw, 3);
         g.lineStyle(1, col, 0.6);
-        g.strokeRoundedRect(i * step, 0, bw, bw, 3);
+        g.strokeRoundedRect(x, y, bw, bw, 3);
         this.buffLayer.add(g);
         const tex = this.iconTexture(info.icon, col);
         if (tex) {
-          const ic = this.add.image(i * step + bw / 2, bw / 2, tex).setDisplaySize(21, 21);
+          const ic = this.add.image(x + bw / 2, y + bw / 2, tex).setDisplaySize(21, 21);
           this.buffLayer.add(ic);
         }
-        const st = this.add.text(i * step + bw - 1, bw - 1, String(p.buffs[k]), {
+        const st = this.add.text(x + bw - 1, y + bw - 1, String(p.buffs[k]), {
           fontFamily: FONT.mono, fontSize: '13px', fontStyle: 'bold', color: PAL.ink,
           stroke: '#fdfaf3', strokeThickness: 3
         }).setOrigin(1, 1);
@@ -947,6 +996,28 @@ export class BattleScene extends Phaser.Scene {
         i++;
       }
     });
+
+    // 长期能力与临时状态可以同时超过九种。逐行排开而不是覆盖右侧药水，
+    // 共鸣说明随状态行数下移，面板也随文字的实际高度伸缩。
+    const { x, y, w, minH, buffY, columns, cell, step } = PLAYER_HUD;
+    const rows = Math.max(1, Math.ceil(i / columns));
+    const buffBottom = buffY + (rows - 1) * step + cell;
+    let contentBottom = buffBottom;
+    if (this.hudSetT) {
+      this.hudSetT.y = y + buffBottom + 14;
+      contentBottom += 14 + this.hudSetT.height;
+    }
+    if (this.hudPanel) {
+      const h = Math.max(minH, contentBottom + 12);
+      const g = this.hudPanel;
+      g.clear();
+      g.fillStyle(0xfdfaf3, 0.82);
+      g.fillRoundedRect(x, y, w, h, 4);
+      g.fillStyle(0xb23a2e, 0.85);
+      g.fillRect(x, y + 10, 3, h - 20);
+      g.lineStyle(1, 0x1d1a17, 0.16);
+      g.strokeRoundedRect(x, y, w, h, 4);
+    }
   }
 
   /* ---------------- 手牌 ---------------- */
@@ -1079,19 +1150,22 @@ export class BattleScene extends Phaser.Scene {
 
     const c = this.add.container(0, 0).setDepth(DEPTH.tooltip);
     const g = this.add.graphics();
-    g.fillStyle(0xfdfaf3, 0.97);
-    g.fillRoundedRect(tx, ty, tw, 72, 6);
-    g.lineStyle(1.2, Phaser.Display.Color.HexStringToColor(def.color).color, 0.6);
-    g.strokeRoundedRect(tx, ty, tw, 72, 6);
     c.add(g);
 
-    c.add(this.add.text(tx + 16, ty + 12, def.name, {
+    const name = this.add.text(tx + 16, ty + 12, def.name, {
       fontFamily: FONT.song, fontSize: '19px', color: PAL.ink
-    }));
-    c.add(this.add.text(tx + 16, ty + 40, def.desc, {
+    });
+    c.add(name);
+    const description = this.add.text(tx + 16, Math.max(ty + 40, name.y + name.height + 4), def.desc, {
       fontFamily: FONT.hei, fontSize: '13px', color: 'rgba(58,52,44,0.8)',
-      wordWrap: { width: tw - 32 }, lineSpacing: 4
-    }));
+      wordWrap: { width: tw - 32, useAdvancedWrap: true }, lineSpacing: 4
+    });
+    c.add(description);
+    const height = Math.max(72, description.y + description.height + 12 - ty);
+    g.fillStyle(0xfdfaf3, 0.97);
+    g.fillRoundedRect(tx, ty, tw, height, 6);
+    g.lineStyle(1.2, Phaser.Display.Color.HexStringToColor(def.color).color, 0.6);
+    g.strokeRoundedRect(tx, ty, tw, height, 6);
 
     this.potionTip = c;
   }
@@ -1251,7 +1325,7 @@ export class BattleScene extends Phaser.Scene {
 
   buildControls() {
     makeButton(this, W - 202, 706, 164, 56, '结束回合', () => this.endTurn(), { size: 22, primary: true });
-    makeButton(this, W - 62, 36, 78, 34, '暂停', () => this.togglePause(), { size: 15 });
+    makeButton(this, W - 116, 36, 78, 34, '暂停', () => this.togglePause(), { size: 15 });
     this.input.keyboard.on('keydown-ESC', () => this.togglePause());
     makeButton(this, W - 202, 610, 164, 36, '牌　组', () => this.openCodex('cards'), { size: 15 });
     makeButton(this, W - 202, 652, 164, 36, '法　宝', () => this.openCodex('relics'), { size: 15 });
@@ -1259,6 +1333,17 @@ export class BattleScene extends Phaser.Scene {
     this.input.on('pointerdown', (pointer) => this.onPointerDown(pointer));
     this.input.on('pointermove', (pointer) => this.onPointerMove(pointer));
     this.input.on('pointerup', (pointer) => this.onPointerUp(pointer));
+    const cancelInput = () => this.cancelCardInteraction();
+    this.input.on('pointerupoutside', cancelInput);
+    // Phaser emits a different release event outside its canvas. Losing focus
+    // can omit the release entirely, so neither path should leave a held card.
+    const gameEvents = this.game?.events;
+    gameEvents?.on('blur', cancelInput);
+    gameEvents?.on('hidden', cancelInput);
+    this.events.once('shutdown', () => {
+      gameEvents?.off('blur', cancelInput);
+      gameEvents?.off('hidden', cancelInput);
+    });
   }
 
   showDamagePreview(card) {
@@ -1468,12 +1553,16 @@ export class BattleScene extends Phaser.Scene {
 
   onPointerDown(pointer) {
     if (this.isInputBlocked()) return;
+    if (this.dragging) this.cancelCardInteraction();
     const mx = pointer.worldX, my = pointer.worldY;
 
     // 点敌人（选中模式下出牌）
     if (this.selected) {
-      const foe = this.foeAt(mx, my);
-      if (foe) { this.playCard(this.selected, foe); return; }
+      // 抬起的手牌可能盖住异兽下沿，先尊重前景卡面，不能穿透出牌。
+      if (!this.cardAt(mx, my)) {
+        const foe = this.foeAt(mx, my);
+        if (foe) { this.playCard(this.selected, foe); return; }
+      }
       this.clearSelection();
       return;
     }
@@ -1547,6 +1636,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   onPointerUp(pointer) {
+    if (pointer.wasCanceled) { this.cancelCardInteraction(); return; }
     if (this.isInputBlocked()) return;
     if (!this.dragging) return;
     const v = this.dragging;
@@ -1614,6 +1704,9 @@ export class BattleScene extends Phaser.Scene {
   playCard(v, foe) {
     if (this.isInputBlocked() || !v || v.removing) return;
     if (!this.battle.canPlay(v.card) || !this.battle.hand.includes(v.card)) { this.returnCard(v); return; }
+    // Self/all cards have no selected target, including calls from the AI test
+    // controls. An incidental selection must not activate single-target relics.
+    if (v.card.def.target !== 'enemy') foe = null;
     // 攻击牌：先落一道笔势弧线、守卷人前倾，让「打出去」先于「掉血」出现
     if (v.card.def.type === 'attack' && this.playerView) {
       const ev = foe
@@ -1682,11 +1775,16 @@ export class BattleScene extends Phaser.Scene {
     this.refreshPiles();
   }
 
-  onEnemyClick(foe) {
-    if (this.isInputBlocked() || !foe.alive) return;
+  onEnemyClick(foe, pointer) {
+    if (this.isInputBlocked() || !foe.alive) return false;
+    // Phaser 先派发异兽 Image 事件，再派发场景事件。手牌通过手动命中
+    // 检测交互，所以这里也要检查前景卡面，不能等全局回调再拦截。
+    if (pointer && this.cardAt(pointer.worldX, pointer.worldY)) return false;
     if (this.selected) {
       this.playCard(this.selected, foe);
+      return true;
     }
+    return false;
   }
 
   foeAt(x, y) {
@@ -1735,6 +1833,15 @@ export class BattleScene extends Phaser.Scene {
   }
 
   showTalk(lines) {
+    if (this._ended) return;
+    this.uiLocked = true;
+    // 开场计时器也会在暂停菜单里到期。待当前浮层关闭后再讲，
+    // 避免低于暂停层的对话遮罩锁住 ESC、看不见却阻止继续。
+    if (this._pauseLayer || this._rules || this._codex || this._dialogue) {
+      this._pendingTalk = lines;
+      return;
+    }
+    this._pendingTalk = null;
     // 打字机对话：逐字浮现、点击推进（推进提示/快进由组件处理）
     const def = FOES[this.act.boss];
     save.seeLore('boss_' + this.act.boss + '_before');
@@ -1769,6 +1876,7 @@ export class BattleScene extends Phaser.Scene {
   onEnd(result) {
     if (this._ended) return;
     this._ended = true;
+    this._pendingTalk = null;
     // 胜败与主动退出都应保留本场统计，且只能计入一次。
     const b = this.battle;
     run.stats.damage += b.damageDealt;
@@ -1844,8 +1952,8 @@ export class BattleScene extends Phaser.Scene {
     if (this.nodeType === 'elite') {
       const h = Math.round(run.player.maxHp * 0.08);
       if (h > 0) {
-        run.heal(h);
-        this.floatText(W / 2, 300, '啖 肉 +' + h, PAL.gold, 30);
+        const healed = run.heal(h);
+        if (healed > 0) this.floatText(W / 2, 300, '啖 肉 +' + healed, PAL.gold, 30);
       }
       run.gold(45);
       this.floatText(W / 2, 356, '兽 髓 墨 +45', PAL.gold, 22);
@@ -1856,6 +1964,9 @@ export class BattleScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+    if (this._pendingTalk && !this._ended && !this._pauseLayer && !this._rules && !this._codex && !this._dialogue) {
+      this.showTalk(this._pendingTalk);
+    }
     // 浮层只暂停战斗时钟，场景仍渲染菜单；不能在暂停背后承受敌人伤害。
     if (this.battle && !this._pauseLayer && !this._rules && !this._codex && !this._dialogue) {
       this.battle.update(delta / 1000);

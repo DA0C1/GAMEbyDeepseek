@@ -87,7 +87,7 @@ export class EndingScene extends Phaser.Scene {
     lines.forEach((ln, i) => {
       const t = this.add.text(W / 2, 270 + i * lineHeight, ln, {
         fontFamily: FONT.song, fontSize: lines.length > 7 ? '20px' : '22px', color: 'rgba(232,220,192,0.86)',
-        align: 'center', wordWrap: { width: 1000 }
+        align: 'center', wordWrap: { width: 1000, useAdvancedWrap: true }
       }).setOrigin(0.5).setAlpha(0);
       layer.add(t);
       this.tweens.add({ targets: t, alpha: 1, duration: 800, delay: 500 + i * 600 });
