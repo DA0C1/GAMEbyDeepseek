@@ -23,7 +23,7 @@ function computeScale() {
 function applyCamera(scene) {
   const gw = Math.round(W * HI.s);
   const gh = Math.round(H * HI.s);
-  scene.cameras.cameras.forEach((cam) => {
+  (scene?.cameras?.cameras || []).forEach((cam) => {
     try {
       cam.setSize(gw, gh);
       cam.setZoom(HI.s);
@@ -56,6 +56,12 @@ export function installHiDPI(sceneClasses) {
   // 2) 每个场景 create 之后设置相机
   sceneClasses.forEach((SceneClass) => {
     const proto = SceneClass.prototype;
+    const origPreload = proto.preload;
+    proto.preload = function (...args) {
+      // 加载页在 preload 中创建画面，此时也必须使用逻辑坐标相机。
+      try { applyCamera(this); } catch (e) { /* 相机尚未就绪时由 create 补上 */ }
+      return origPreload ? origPreload.apply(this, args) : undefined;
+    };
     const origCreate = proto.create;
     proto.create = function (...args) {
       const r = origCreate ? origCreate.apply(this, args) : undefined;
@@ -89,9 +95,10 @@ function relayout() {
     game.scale.resize(gw, gh);
   } catch (e) { /* ignore */ }
 
-  game.scene.getScenes(true).forEach((scene) => {
+  // 设置页会暂停原场景；暂停画面也要更新，恢复时才能匹配新的背板。
+  game.scene.getScenes(false).forEach((scene) => {
     applyCamera(scene);
-    scene.children.list.forEach((o) => {
+    (scene?.children?.list || []).forEach((o) => {
       forEachText(o, (t) => {
         try { t.setResolution(s2); } catch (e) { /* ignore */ }
       });

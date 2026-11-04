@@ -64,6 +64,8 @@ class SaveManager {
   merge(base, extra) {
     if (!extra || typeof extra !== 'object' || Array.isArray(extra)) return base;
     Object.keys(extra).forEach((k) => {
+      // 存档内容只能是数据，不能经由原型键修改全局对象。
+      if (k === '__proto__' || k === 'constructor' || k === 'prototype') return;
       const v = extra[k];
       if (v === undefined || v === null) return;
       const cur = base[k];
@@ -90,9 +92,9 @@ class SaveManager {
     const clamp = (x, lo, hi, fb) => (typeof x === 'number' && Number.isFinite(x) ? Math.min(hi, Math.max(lo, x)) : fb);
     s.music = clamp(s.music, 0, 1, 0.42);
     s.sfx = clamp(s.sfx, 0, 1, 0.8);
-    s.quality = clamp(s.quality, 0, 2, 1);
+    s.quality = Math.floor(clamp(s.quality, 0, 2, 1));
     d.settings = s;
-    d.ascension = clamp(d.ascension, 0, ASCENSION_MAX, 0);
+    d.ascension = Math.floor(clamp(d.ascension, 0, ASCENSION_MAX, 0));
     for (const k of ['runs', 'wins', 'bestDepth', 'bestScore']) d[k] = clamp(d[k], 0, 1e9, 0);
     const st = d.stats || {};
     for (const k of Object.keys(st)) st[k] = clamp(st[k], 0, 1e12, 0);
@@ -101,7 +103,26 @@ class SaveManager {
   }
 
   write() {
-    try { localStorage.setItem(KEY, JSON.stringify(this.data)); } catch (e) { this.ok = false; }
+    if (!this.data) return false;
+    try { localStorage.setItem(KEY, JSON.stringify(this.data)); this.ok = true; return true; }
+    catch (e) { this.ok = false; return false; }
+  }
+
+  installPersistence(target = globalThis.window, doc = globalThis.document) {
+    if (!target?.addEventListener || (this.persistenceTarget === target && this.persistenceDocument === doc)) return;
+    this.removePersistence();
+    this.persistenceTarget = target;
+    this.persistenceDocument = doc;
+    this.flushOnHide = () => this.write();
+    this.flushOnVisibility = () => { if (doc.visibilityState === 'hidden') this.write(); };
+    target.addEventListener('pagehide', this.flushOnHide);
+    doc?.addEventListener('visibilitychange', this.flushOnVisibility);
+  }
+
+  removePersistence() {
+    this.persistenceTarget?.removeEventListener('pagehide', this.flushOnHide);
+    this.persistenceDocument?.removeEventListener('visibilitychange', this.flushOnVisibility);
+    this.persistenceTarget = this.persistenceDocument = null;
   }
 
   reset() {
@@ -109,10 +130,19 @@ class SaveManager {
     this.write();
   }
 
-  seeCard(id) { this.data.seen.cards[id] = (this.data.seen.cards[id] || 0) + 1; }
-  seeFoe(id) { this.data.seen.foes[id] = (this.data.seen.foes[id] || 0) + 1; }
-  seeRelic(id) { this.data.seen.relics[id] = (this.data.seen.relics[id] || 0) + 1; }
-  seePotion(id) { this.data.seen.potions[id] = (this.data.seen.potions[id] || 0) + 1; }
+  recordSeen(kind, id, persistCount = false) {
+    if (typeof id !== 'string' || !id || ['__proto__', 'constructor', 'prototype'].includes(id)) return;
+    const entries = this.data.seen[kind];
+    const previous = Number.isFinite(entries[id]) ? entries[id] : 0;
+    entries[id] = previous + 1;
+    // 首次见闻立即保存；高频重复出牌在页面隐藏/结算时统一刷新。
+    if (!previous || persistCount) this.write();
+  }
+
+  seeCard(id) { this.recordSeen('cards', id); }
+  seeFoe(id) { this.recordSeen('foes', id); }
+  seeRelic(id) { this.recordSeen('relics', id, true); }
+  seePotion(id) { this.recordSeen('potions', id, true); }
   /* 见闻：序章 / 幕引 / 守卷对话 / 际遇等叙事时刻，跨局入《卷宗》 */
   seeLore(id) {
     if (!this.data.seen.lore) this.data.seen.lore = {};
@@ -149,7 +179,8 @@ class SaveManager {
     // 非线性阶梯：前几重只轻微加压，后几重才明显收紧
     const A_HP = [0, 0.04, 0.06, 0.10, 0.14, 0.18];
     const A_DMG = [0, 0.03, 0.045, 0.07, 0.095, 0.12];
-    const a = Math.max(0, Math.min(ASCENSION_MAX, this.data.ascension || 0));
+    const value = this.data?.ascension;
+    const a = Number.isFinite(value) ? Math.max(0, Math.min(ASCENSION_MAX, Math.floor(value))) : 0;
     return {
       enemyHp: 1 + A_HP[a],
       enemyDmg: 1 + A_DMG[a],

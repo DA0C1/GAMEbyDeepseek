@@ -93,8 +93,8 @@ export const run = {
     const p = this.player;
     if (!p || p.relics.indexOf(id) >= 0) return false;
     p.relics.push(id);
-    save.seeRelic(id);
     save.data.stats.relics = (save.data.stats.relics || 0) + 1;
+    save.seeRelic(id);
     const inst = { id, def: RELICS[id], state: {} };
     if (RELICS[id].hooks && RELICS[id].hooks.pickup) {
       try { RELICS[id].hooks.pickup(this, inst, {}); } catch (e) {
@@ -108,19 +108,23 @@ export const run = {
     return this.grantRelic(id);
   },
 
-  heal(n) {
+  previewHeal(n) {
     const p = this.player;
     const cut = save.ascensionMods().healCut || 1;
-    const real = Math.max(0, Math.round(n * cut));
-    const before = p.hp;
-    p.hp = Math.min(p.maxHp, p.hp + real);
-    this.stats.healed += (p.hp - before);
-    return p.hp - before;
+    return Math.min(Math.max(0, p.maxHp - p.hp), Math.max(0, Math.round(n * cut)));
+  },
+
+  heal(n) {
+    const real = this.previewHeal(n);
+    this.player.hp += real;
+    this.stats.healed += real;
+    return real;
   },
 
   hurt(n) {
     const p = this.player;
     p.hp = Math.max(0, p.hp - n);
+    if (p.hp <= 0) p.alive = false;
     return p.hp <= 0;
   },
 
@@ -138,6 +142,12 @@ export const run = {
       // 结余墨折分：让「省着花」与「花在刀刃上」都有意义，缓解局末滞留
       (this.player ? this.player.gold * 0.3 : 0)
     );
+  },
+
+  // depth 按「卷号 × 10 + 列号」保存，不是连续楼层计数。
+  depthLabel(depth = this.depth) {
+    const value = Number.isFinite(depth) ? Math.max(0, Math.floor(depth)) : 0;
+    return value ? `第 ${Math.floor(value / 10) || 1} 卷 · 第 ${(value % 10) + 1} 层` : '尚未入卷';
   },
 
   elapsed() {

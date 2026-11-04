@@ -16,9 +16,29 @@ class AudioManager {
     this.scene = null;
   }
 
+  // Boot 场景会立刻退出，解锁监听必须属于整个页面而不是启动场景。
+  installUnlock(target = globalThis.window) {
+    if (!target?.addEventListener || this.unlockTarget === target) return;
+    this.removeUnlock();
+    this.unlockTarget = target;
+    this.unlockHandler = () => {
+      const wasReady = this.ready;
+      if (this.ensure() && !wasReady) this.setVolumes();
+    };
+    target.addEventListener('pointerdown', this.unlockHandler, true);
+    target.addEventListener('keydown', this.unlockHandler, true);
+  }
+
+  removeUnlock() {
+    if (!this.unlockTarget) return;
+    this.unlockTarget.removeEventListener('pointerdown', this.unlockHandler, true);
+    this.unlockTarget.removeEventListener('keydown', this.unlockHandler, true);
+    this.unlockTarget = this.unlockHandler = null;
+  }
+
   ensure() {
     if (this.ready) {
-      if (this.ctx.state === 'suspended') this.ctx.resume();
+      if (this.ctx.state === 'suspended') this.ctx.resume()?.catch?.(() => {});
       return true;
     }
     try {
@@ -50,7 +70,8 @@ class AudioManager {
       for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
 
       this.ready = true;
-      if (ctx.state === 'suspended') ctx.resume();
+      if (ctx.state === 'suspended') ctx.resume()?.catch?.(() => {});
+      if (this.procMode && !this.procTimer && !this.bgm) this.startProcedural(this.procMode);
       return true;
     } catch (e) {
       return false;
@@ -128,10 +149,10 @@ class AudioManager {
     src.start(t); src.stop(t + dur + 0.02);
   }
 
-  drum(low, vol, dur) {
+  drum(low, vol, dur, when = 0, bus = null) {
     if (!this.ready) return;
     const ctx = this.ctx;
-    const t = ctx.currentTime;
+    const t = when || ctx.currentTime;
     const o = ctx.createOscillator();
     const g = ctx.createGain();
     o.type = 'sine';
@@ -140,7 +161,7 @@ class AudioManager {
     g.gain.setValueAtTime(0.0001, t);
     g.gain.linearRampToValueAtTime(vol || 0.3, t + 0.006);
     g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.3));
-    o.connect(g); g.connect(this.sfxBus);
+    o.connect(g); g.connect(bus || this.sfxBus);
     o.start(t); o.stop(t + (dur || 0.3) + 0.02);
   }
 
@@ -163,7 +184,7 @@ class AudioManager {
 
   gate(key, ms) {
     const t = this.now();
-    if (t - (this.lastAt[key] || -99) < ms / 1000) return false;
+    if (t - (this.lastAt[key] ?? -Infinity) < ms / 1000) return false;
     this.lastAt[key] = t;
     return true;
   }
@@ -242,6 +263,11 @@ class AudioManager {
         this.bell(this.midi(74), 0.05, 1.0);
         this.pluck(this.midi(81), 0.09, true, this.now() + 0.05);
         break;
+      case 'bossWarn':
+        if (!this.gate('bossWarn', 700)) break;
+        this.drum(72, 0.18, 0.65);
+        this.bell(this.midi(45), 0.08, 1.1);
+        break;
       case 'turn': this.bell(this.midi(57), 0.07, 1.1); break;
       case 'enemyTurn': this.drum(90, 0.2, 0.5); break;
       case 'win': [0, 4, 7, 9, 12].forEach((n, i) => this.pluck(this.midi(62 + n), 0.14, true, this.now() + i * 0.1)); break;
@@ -264,7 +290,11 @@ class AudioManager {
   /* ---------- BGM ---------- */
   playBgm(scene, key) {
     if (!scene || !scene.sound) return;
-    if (this.bgmKey === key && this.bgm && this.bgm.isPlaying) return;
+    if (this.bgmKey === key && (this.bgm?.isPlaying || this.procTimer)) {
+      // 前一个场景的淡入可能已随场景停掉，保留播放进度并恢复目标音量。
+      this.setVolumes();
+      return;
+    }
     this.stopBgm();
     this.bgmKey = key;
     const vol = save.data.settings.music;
@@ -272,20 +302,24 @@ class AudioManager {
       try {
         this.bgm = scene.sound.add(key, { loop: true, volume: 0 });
         this.bgm.play();
-        scene.tweens.add({ targets: this.bgm, volume: vol, duration: 1200 });
+        this.bgmFade = scene.tweens.add({ targets: this.bgm, volume: vol, duration: 1200 });
       } catch (e) { /* ignore */ }
     } else {
       this.startProcedural(key);
     }
   }
 
+  cancelBgmFade() {
+    if (!this.bgmFade) return;
+    this.bgmFade.stop();
+    this.bgmFade.remove?.();
+    this.bgmFade = null;
+  }
+
   stopBgm() {
+    this.cancelBgmFade();
     if (this.bgm) {
-      try {
-        const b = this.bgm;
-        if (this.scene) this.scene.tweens.add({ targets: b, volume: 0, duration: 500, onComplete: () => b.stop() });
-        else b.stop();
-      } catch (e) { /* ignore */ }
+      try { this.bgm.stop(); this.bgm.destroy(); } catch (e) { /* ignore */ }
       this.bgm = null;
     }
     this.stopProcedural();
@@ -294,30 +328,39 @@ class AudioManager {
 
   /* 无音频资源时的程序化替代 */
   startProcedural(mode) {
-    if (!this.ready) return;
     this.stopProcedural();
     this.procMode = mode;
+    if (!this.ready) return;
     this.procStep = 0;
     this.procNext = this.now() + 0.2;
     const battle = mode.indexOf('battle') >= 0 || mode.indexOf('boss') >= 0;
+    const bpm = mode.indexOf('boss') >= 0 ? 76 : (battle ? 64 : 52);
+    const beatSeconds = 60 / bpm / 4;
     this.procTimer = setInterval(() => {
       if (!this.ready) return;
-      const ahead = this.now() + 0.3;
+      const now = this.now();
+      // 页面节流后跳过已错过的拍点，不能把过去几十秒的声音挤在现在播放。
+      if (this.procNext < now) {
+        const missed = Math.ceil((now - this.procNext) / beatSeconds);
+        this.procStep += missed;
+        this.procNext += missed * beatSeconds;
+      }
+      const ahead = now + 0.3;
       let guard = 0;
       while (this.procNext < ahead && guard++ < 12) {
         const step = this.procStep;
         const chord = [[0, 4, 7], [-2, 2, 5], [-5, 0, 4], [0, 4, 9]][Math.floor(step / 16) % 4];
         if (step % 8 === 0) this.pluck(this.midi(38 + chord[0]), 0.16, false, this.procNext, this.musicBus);
         if (step % 4 === 0) this.pluck(this.midi(62 + chord[(step / 4) % chord.length | 0]), 0.06, true, this.procNext, this.musicBus);
-        if (battle && step % 8 === 4) this.drum(120, 0.05, 0.16);
-        const bpm = mode.indexOf('boss') >= 0 ? 76 : (battle ? 64 : 52);
-        this.procNext += 60 / bpm / 4;
+        if (battle && step % 8 === 4) this.drum(120, 0.05, 0.16, this.procNext, this.musicBus);
+        this.procNext += beatSeconds;
         this.procStep++;
       }
     }, 80);
   }
 
   stopProcedural() {
+    this.procMode = null;
     if (this.procTimer) {
       clearInterval(this.procTimer);
       this.procTimer = null;
@@ -325,10 +368,15 @@ class AudioManager {
   }
 
   setVolumes() {
-    if (!this.ready) return;
-    this.sfxBus.gain.value = save.data.settings.sfx;
-    this.musicBus.gain.value = save.data.settings.music;
-    if (this.bgm) this.bgm.volume = save.data.settings.music;
+    const settings = save.data.settings;
+    if (this.ready) {
+      this.sfxBus.gain.value = settings.sfx;
+      this.musicBus.gain.value = settings.music;
+    }
+    // Phaser 的 MP3 与程序音效使用不同音频通道，不能被 ready 门槛挡住。
+    // 同时取消旧的淡入目标，避免稍后恢复旧音量（包括把静音重新打开）。
+    this.cancelBgmFade();
+    if (this.bgm) this.bgm.volume = settings.music;
   }
 }
 
