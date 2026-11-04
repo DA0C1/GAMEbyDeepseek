@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { run } from '../src/core/run.js';
+import { save } from '../src/core/save.js';
+import { audio } from '../src/core/audio.js';
+import { fakeScene, installFakePhaser } from './helpers/fake-scene.mjs';
+installFakePhaser();
+const { RewardScene } = await import('../src/scenes/RewardScene.js');
+globalThis.localStorage = { getItem: () => null, setItem() {} };
+audio.sfx = () => {};
+
+test('treasure grants one reward, marks its node cleared, and returns to the map once', () => {
+  save.load(); run.newRun();
+  const node = { type: 'treasure', cleared: false };
+  run.map = { cur: { node } };
+  const scene = new RewardScene(), view = fakeScene(scene);
+  scene.init({ treasure: true }); scene.create();
+  assert.equal(node.cleared, true);
+  assert.equal(run.player.relics.length, 1);
+  assert.ok(run.player.gold >= 149 && run.player.gold <= 188);
+  const gold = run.player.gold;
+  scene.showTreasure();
+  assert.equal(run.player.gold, gold);
+  assert.equal(run.player.relics.length, 1);
+  view.button('收起').zone.emit('pointerdown');
+  const pending = view.timers.find(timer => timer.delay === 40);
+  pending.callback(); pending.callback();
+  view.flushTimers(380);
+  assert.deepEqual(view.transitions, [['Map']]);
+  assert.equal(scene.input.enabled, false);
+});

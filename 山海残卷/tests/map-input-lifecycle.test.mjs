@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { EventEmitter } from 'node:events';
+import { fakeScene, installFakePhaser } from './helpers/fake-scene.mjs';
+import { run } from '../src/core/run.js';
+import { save } from '../src/core/save.js';
+import { audio } from '../src/core/audio.js';
+import { setSeed } from '../src/core/random.js';
+import { generateMap } from '../src/systems/mapgen.js';
+
+installFakePhaser();
+Phaser.Math.Distance = { Between: (x1, y1, x2, y2) => Math.hypot(x2 - x1, y2 - y1) };
+const { MapScene } = await import('../src/scenes/MapScene.js');
+
+test('initial map cannot accept a route before its delayed introduction is dismissed', t => {
+  const storage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { getItem: () => null, setItem() {} } });
+  const oldMusic = audio.playBgm, oldSfx = audio.sfx;
+  audio.playBgm = audio.sfx = () => {};
+  t.after(() => {
+    audio.playBgm = oldMusic; audio.sfx = oldSfx; setSeed(null);
+    if (storage) Object.defineProperty(globalThis, 'localStorage', storage); else delete globalThis.localStorage;
+  });
+  save.load(); run.newRun(); setSeed(20261104);
+  run.map = generateMap(0); run._actIntroShown = false; run._mapIntroPending = true;
+  const scene = new MapScene(); scene.init({});
+  const view = fakeScene(scene);
+  scene.input = Object.assign(new EventEmitter(), { keyboard: new EventEmitter(), enabled: true });
+  for (const name of ['drawTitle', 'drawLinks', 'drawNodes', 'drawLegend', 'drawHud']) scene[name] = () => {};
+  scene.create();
+  const first = run.map.cols[0][0];
+  const pointer = { worldX: first.px, worldY: first.py };
+  scene.input.keyboard.emit('keydown-H', { preventDefault() {} });
+  assert.equal(scene._rules, null, 'a delayed intro must not be covered by a second modal');
+  scene.input.emit('pointerdown', pointer);
+  assert.equal(run.map.cur.node, null, 'the 300ms opening delay is already modal');
+  assert.equal(scene._entering, false);
+  view.flushTimers(300);
+  assert.equal(scene._introOpen, true);
+  scene.input.emit('pointerdown', pointer);
+  assert.equal(scene._introOpen, false, 'this click only dismisses the introduction');
+  assert.equal(run.map.cur.node, null);
+  scene.input.emit('pointerdown', pointer);
+  assert.equal(run.map.cur.node, first, 'the following click may enter the route');
+  scene.input.keyboard.emit('keydown-ESC');
+  assert.equal(scene._deckPanel, null, 'outgoing route transition cannot open a deck modal');
+  view.flushTimers(420);
+  assert.equal(view.transitions.length, 1);
+  assert.equal(view.transitions[0][0], 'Battle');
+});

@@ -36,3 +36,25 @@ test('ordinary mode delegates to host randomness and zero is a valid seed', () =
     assert.ok(first >= 0 && first < 1);
   } finally { Math.random = hostRandom; setSeed(null); }
 });
+
+test('isolated synchronous randomness restores seeded and ordinary state even after exceptions', async () => {
+  const { withIsolatedRandom, getSeed } = await import('../src/core/random.js');
+  const original = Math.random;
+  try {
+    setSeed(7);
+    const expected = random();
+    setSeed(7);
+    assert.throws(() => withIsolatedRandom(() => { random(); random(); throw new Error('abort'); }), /abort/);
+    assert.equal(getSeed(), 7);
+    assert.equal(random(), expected);
+    let hostCalls = 0;
+    Math.random = () => { hostCalls++; return 0.25; };
+    setSeed(null);
+    const first = withIsolatedRandom(() => [random(), withIsolatedRandom(random), random()]);
+    assert.deepEqual(withIsolatedRandom(() => [random(), withIsolatedRandom(random), random()]), first);
+    assert.equal(hostCalls, 0);
+    assert.equal(getSeed(), null);
+    assert.equal(random(), 0.25);
+    assert.equal(hostCalls, 1);
+  } finally { Math.random = original; setSeed(null); }
+});
