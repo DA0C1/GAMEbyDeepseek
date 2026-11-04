@@ -33,6 +33,9 @@ const config = {
   height: gameH,
   parent: 'game',
   backgroundColor: '#efe6d4',
+  // 平滑计时在失焦/低帧率时会把真实的数百毫秒压成 16.7ms，拖慢回合和转场。
+  // 使用实际帧间隔；隐藏页面的暂停与恢复仍由 Phaser 的可见性机制处理。
+  fps: { smoothStep: false },
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH

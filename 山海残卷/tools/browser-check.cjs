@@ -14,7 +14,8 @@ async function main() {
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   let browser;
   try {
-    browser = await puppeteer.launch({ executablePath, headless: true, args: ['--autoplay-policy=no-user-gesture-required'] });
+    browser = await puppeteer.launch({ executablePath, headless: true,
+      args: ['--autoplay-policy=no-user-gesture-required', '--edge-skip-compat-layer-relaunch'] });
     const page = await browser.newPage();
     await page.setViewport({ width: 1600, height: 900 });
     const errors = [];
@@ -229,6 +230,130 @@ async function main() {
     assert.equal(await page.evaluate(() => window.__aiTest.state().battle.enemies[0].alive), false);
     assert.equal(await page.evaluate(() => window.__aiTest.log().some((entry) => entry.action.type === 'play_card')), true);
     console.log('PASS AI actions: deterministic seed, legal card play, invalid-card rejection, death fixture and action log');
+
+    await page.evaluate(async () => {
+      const { setSeed } = await import('/src/core/random.js');
+      setSeed(121); // Three upgraded choices, including the X-cost 凝气.
+      for (const scene of window.__game.scene.getScenes(true)) window.__game.scene.stop(scene.sys.settings.key);
+      window.__game.scene.start('Reward', { treasure: false });
+    });
+    await page.waitForFunction(() => window.__aiTest.state().scene === 'Reward');
+    const rewardCards = await page.evaluate(() => window.__aiTest.state().buttons.filter(button => button.card));
+    assert.equal(rewardCards.length, 3);
+    assert.equal(rewardCards.some(button => button.card.upgraded), true);
+    assert.equal(rewardCards.some(button => button.card.cost === -1 && button.label.includes('费 X')), true);
+    assert.equal(await page.evaluate(async () => {
+      const { cardText } = await import('/src/data/cards.js');
+      const scene = window.__game.scene.getScene('Reward');
+      const actual = scene.children.list.filter(object => object.getData?.('aiCard')).map(object => object.getData('aiCard'));
+      return window.__aiTest.state().buttons.filter(button => button.card).every(button => {
+        const card = actual.find(card => card.id === button.card.id);
+        return card && button.card.upgraded === card.up && button.card.cost === card.def.cost
+          && button.card.description === cardText(card) && button.label.includes(cardText(card));
+      });
+    }), true, 'accessible rewards match the actual upgraded card effects');
+    await page.screenshot({ path: path.join(artifacts, 'ai-rewards.png') });
+    const deckBeforeReward = await page.evaluate(() => window.__run.player.deck.length);
+    await page.click(`#ai-buttons button[data-key="${rewardCards[0].id}"]`);
+    await page.waitForFunction(expected => window.__run.player.deck.length === expected, {}, deckBeforeReward + 1);
+    assert.equal(await page.evaluate(() => window.__run.player.deck.at(-1).id), rewardCards[0].card.id);
+    console.log('PASS AI rewards: actual costs, upgraded effects, X cost and DOM selection');
+
+    await page.evaluate(async () => {
+      const { PAGES } = await import('/src/data/story.js');
+      window.__run.newRun();
+      window.__run.flags.pages = PAGES.slice(0, 6).map(page => page.id);
+      window.__run.stats.cardsPlayed = 5;
+      window.__run.stats.kills = 2;
+      window.__run.stats.damage = 123;
+      window.__endingBefore = structuredClone(window.__save.data);
+      for (const scene of window.__game.scene.getScenes(true)) window.__game.scene.stop(scene.sys.settings.key);
+      window.__game.scene.start('Ending');
+    });
+    await page.waitForFunction(() => window.__aiTest.state().scene === 'Ending');
+    const oldChoices = await page.evaluate(() => window.__aiTest.state().buttons.map(button => button.id));
+    await page.evaluate(ids => {
+      // Different choices queue callbacks in the same frame; both must not record a win.
+      window.__aiTest.act({ type: 'ui', id: ids[2] });
+      window.__aiTest.act({ type: 'ui', id: ids[0] });
+    }, oldChoices);
+    await page.waitForFunction(() => window.__game.scene.getScene('Ending')._endingChosen);
+    assert.equal(await page.evaluate(ids => window.__aiTest.state().buttons.some(button => ids.includes(button.id)), oldChoices), false);
+    assert.equal(await page.evaluate(id => window.__aiTest.act({ type: 'ui', id }).ok, oldChoices[0]), false);
+    await page.evaluate(async () => {
+      const { ENDINGS } = await import('/src/data/story.js');
+      window.__game.scene.getScene('Ending').showEnding(ENDINGS.burn);
+    });
+    assert.equal(await page.evaluate(() => {
+      const before = window.__endingBefore;
+      const after = window.__save.data;
+      return after.wins === before.wins + 1 && after.ascension === Math.min(5, before.ascension + 1)
+        && after.stats.cardsPlayed === before.stats.cardsPlayed + 5
+        && after.stats.enemiesKilled === before.stats.enemiesKilled + 2
+        && after.stats.damageDealt === before.stats.damageDealt + 123;
+    }), true, 'queued and direct repeat requests cannot duplicate victory or lifetime stats');
+    await page.waitForFunction(() => window.__aiTest.state().buttons.some(button => button.label.replace(/\s/g, '') === '回山门'));
+    assert.equal(await page.evaluate(async () => {
+      const { ENDINGS } = await import('/src/data/story.js');
+      const body = window.__game.scene.getScene('Ending').children.list
+        .find(object => object.type === 'Container' && object.depth === 100).list
+        .filter(object => object.type === 'Text' && ENDINGS.become.lines.filter(Boolean).includes(object.text));
+      return body.length === ENDINGS.become.lines.filter(Boolean).length
+        && body.every(object => object.alpha === 1 && object.getBounds().bottom < 720);
+    }), true, 'all ending lines are visible above the score before return is offered');
+    await page.screenshot({ path: path.join(artifacts, 'ending-locked.png') });
+    const returnId = await page.evaluate(() => window.__aiTest.state().buttons.find(button => button.label.replace(/\s/g, '') === '回山门').id);
+    await page.click(`#ai-buttons button[data-key="${returnId}"]`);
+    await page.waitForFunction(() => window.__aiTest.state().scene === 'Title');
+    assert.equal(await page.evaluate(() => window.__save.data.wins === window.__endingBefore.wins + 1), true);
+    await page.evaluate(() => {
+      window.__run.newRun();
+      for (const scene of window.__game.scene.getScenes(true)) window.__game.scene.stop(scene.sys.settings.key);
+      window.__game.scene.start('Ending');
+    });
+    await page.waitForFunction(() => window.__aiTest.state().scene === 'Ending');
+    assert.deepEqual(await page.evaluate(() => window.__aiTest.state().buttons.map(button => button.label.replace(/\s/g, ''))), ['补卷']);
+    await page.evaluate(async () => {
+      const { PAGES } = await import('/src/data/story.js');
+      window.__run.flags.pages = PAGES.map(page => page.id);
+      window.__game.scene.stop('Ending');
+      window.__game.scene.start('Ending');
+    });
+    await page.waitForFunction(() => window.__aiTest.state().buttons.length === 3);
+    await page.evaluate(() => {
+      const choice = window.__aiTest.state().buttons.find(button => button.label.replace(/\s/g, '') === '代卷');
+      window.__aiTest.act({ type: 'ui', id: choice.id });
+    });
+    await page.waitForFunction(() => window.__aiTest.state().buttons.some(button => button.label.replace(/\s/g, '') === '回山门'));
+    assert.equal(await page.evaluate(() => {
+      const layer = window.__game.scene.getScene('Ending').children.list.find(object => object.type === 'Container' && object.depth === 100);
+      const epilogue = layer.list.filter(object => object.type === 'Text' &&
+        (object.text === '图全了。' || object.text.includes('那道背影') || object.text.includes('已录：背影')));
+      return epilogue.length === 3 && epilogue.every(object => object.alpha === 1) && !!window.__save.data.seen.lore.ending_true;
+    }), true, 'return waits for the complete nine-page epilogue');
+    console.log('PASS ending: old choices removed, locked choices disabled, single settlement and normal return');
+
+    await aiBattle(42);
+    await page.evaluate(() => {
+      const nativeRAF = window.requestAnimationFrame.bind(window);
+      window.__restoreRAF = () => { window.requestAnimationFrame = nativeRAF; window.dispatchEvent(new Event('focus')); };
+      window.requestAnimationFrame = callback => nativeRAF(() => setTimeout(() => callback(performance.now()), 250));
+      window.dispatchEvent(new Event('blur'));
+      window.__turnStartedAt = performance.now();
+      window.__aiTest.act({ type: 'end_turn' });
+    });
+    await page.waitForFunction(() => window.__aiTest.state().battle?.turn === 2 && window.__aiTest.state().battle.phase === 'player', { timeout: 6000 });
+    const timing = await page.evaluate(() => {
+      const result = { elapsedMs: performance.now() - window.__turnStartedAt,
+        delta: window.__game.loop.delta, rawDelta: window.__game.loop.rawDelta, visibility: document.visibilityState };
+      window.__restoreRAF();
+      return result;
+    });
+    assert.equal(timing.visibility, 'visible');
+    assert.ok(timing.rawDelta >= 200 && timing.delta >= 200 && timing.elapsedMs < 6000,
+      'low-FPS blurred window advances using actual elapsed time');
+    await fs.writeFile(path.join(artifacts, 'low-fps-timing.json'), JSON.stringify(timing, null, 2));
+    console.log(`PASS low-FPS timing: next player turn in ${Math.round(timing.elapsedMs)}ms at ~4 FPS while blurred`);
 
     assert.deepEqual(errors, [], 'no page errors or battle-handler errors');
     console.log('PASS zero runtime errors');

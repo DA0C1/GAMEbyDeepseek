@@ -12,6 +12,9 @@ export class EndingScene extends Phaser.Scene {
   constructor() { super('Ending'); }
 
   create() {
+    this._endingChosen = false;
+    this._returning = false;
+    this._endingChoices = [];
     this.cameras.main.fadeIn(900, 20, 17, 14);
     this.add.rectangle(W / 2, H / 2, W, H, 0x12100c).setDepth(DEPTH.bg);
     const g = this.add.graphics().setDepth(DEPTH.bg + 1);
@@ -41,6 +44,7 @@ export class EndingScene extends Phaser.Scene {
         if (!unlocked) return;
         this.showEnding(e);
       }, { size: 28, depth: DEPTH.scene });
+      this._endingChoices.push(btn);
 
       text(this, W / 2, y + 92, o.desc, 15, {
         originX: 0.5, font: FONT.hei,
@@ -48,6 +52,7 @@ export class EndingScene extends Phaser.Scene {
       }).setDepth(DEPTH.scene);
 
       if (!unlocked) {
+        btn.zone.disableInteractive();
         btn.setAlpha(0.35);
         text(this, W / 2 + 280, y + 30, `需 ${o.need} / ${PAGES.length} 页`, 13, {
           originX: 0, font: FONT.mono, color: 'rgba(226,196,137,0.4)'
@@ -59,12 +64,16 @@ export class EndingScene extends Phaser.Scene {
   }
 
   showEnding(ending) {
+    // 不同按钮可能在同一帧排入延迟回调；先锁定，确保战绩只入账一次。
+    if (this._endingChosen) return;
+    this._endingChosen = true;
+    this._endingChoices.forEach((button) => button.destroy());
+    this._endingChoices = [];
     audio.sfx('page');
     const layer = this.add.container(0, 0).setDepth(DEPTH.overlay);
-    const g = this.add.graphics();
-    g.fillStyle(0x0d0b09, 0.96);
-    g.fillRect(0, 0, W, H);
-    layer.add(g);
+    const blocker = this.add.rectangle(W / 2, H / 2, W, H, 0x0d0b09, 0.96).setInteractive();
+    blocker.on('pointerdown', (pointer, localX, localY, event) => event.stopPropagation());
+    layer.add(blocker);
 
     const title = this.add.text(W / 2, 160, ending.title, {
       fontFamily: FONT.song, fontSize: '58px', color: '#e2c489'
@@ -72,9 +81,12 @@ export class EndingScene extends Phaser.Scene {
     layer.add(title);
     burst(this, W / 2, 160, { kind: 'gold', count: 30, speed: 260, life: 1400, add: true });
 
-    ending.lines.forEach((ln, i) => {
-      const t = this.add.text(W / 2, 270 + i * 56, ln, {
-        fontFamily: FONT.song, fontSize: '22px', color: 'rgba(232,220,192,0.86)',
+    const lines = ending.lines.filter(Boolean);
+    const lineHeight = Math.min(56, 420 / Math.max(1, lines.length - 1));
+    let returnDelay = Math.max(3200, 500 + (lines.length - 1) * 600 + 1100);
+    lines.forEach((ln, i) => {
+      const t = this.add.text(W / 2, 270 + i * lineHeight, ln, {
+        fontFamily: FONT.song, fontSize: lines.length > 7 ? '20px' : '22px', color: 'rgba(232,220,192,0.86)',
         align: 'center', wordWrap: { width: 1000 }
       }).setOrigin(0.5).setAlpha(0);
       layer.add(t);
@@ -84,7 +96,7 @@ export class EndingScene extends Phaser.Scene {
     // 九页全收：图全之刻，背影回头——三条路之外的真相钩子，入《卷宗》
     if (run.flags.pages.length >= PAGES.length) {
       save.seeLore('ending_true');
-      const n = ending.lines.length;
+      const n = lines.length;
       const veil = this.add.rectangle(W / 2, 430, 760, 150, 0x0d0b09, 0.72)
         .setDepth(DEPTH.overlay + 1).setAlpha(0);
       layer.add(veil);
@@ -96,6 +108,7 @@ export class EndingScene extends Phaser.Scene {
       }).setOrigin(0.5).setDepth(DEPTH.overlay + 2).setAlpha(0);
       layer.add([l1, l2]);
       const d0 = 500 + n * 600 + 1400;
+      returnDelay = Math.max(returnDelay, d0 + 3800);
       this.tweens.add({ targets: veil, alpha: 1, duration: 900, delay: d0 });
       this.tweens.add({ targets: l1, alpha: 1, duration: 900, delay: d0 + 700 });
       this.tweens.add({
@@ -121,13 +134,18 @@ export class EndingScene extends Phaser.Scene {
     });
 
     const btn = makeButton(this, W / 2 - 130, H - 120, 260, 60, '回　山　门', () => {
+      if (this._returning) return;
+      this._returning = true;
+      btn.zone.disableInteractive();
       run.active = false;
       run.map = null;
       run._actIntroShown = false;
       inkTransition(this, () => this.scene.start('Title'));
     }, { size: 22, depth: DEPTH.overlay + 2 });
     btn.setAlpha(0);
-    this.tweens.add({ targets: btn, alpha: 1, duration: 800, delay: 3200 });
+    btn.zone.disableInteractive();
+    this.tweens.add({ targets: btn, alpha: 1, duration: 800, delay: returnDelay,
+      onComplete: () => btn.zone.setInteractive({ useHandCursor: true }) });
 
     this.add.text(W / 2, H - 160, `通关评分 ${score}`, {
       fontFamily: FONT.mono, fontSize: '15px', color: 'rgba(226,196,137,0.65)'

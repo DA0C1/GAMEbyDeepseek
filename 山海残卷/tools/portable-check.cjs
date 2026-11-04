@@ -12,7 +12,8 @@ async function main() {
   try {
     browser = await puppeteer.launch({
       executablePath: process.env.EDGE_PATH || 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
-      headless: true
+      headless: true,
+      args: ['--edge-skip-compat-layer-relaunch']
     });
     const page = await browser.newPage();
     await page.setViewport({ width: 1600, height: 900 });

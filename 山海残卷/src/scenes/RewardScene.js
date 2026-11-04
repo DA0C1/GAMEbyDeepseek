@@ -121,6 +121,7 @@ export class RewardScene extends Phaser.Scene {
       const key = ensureCardTexture(this, card);
       const img = this.add.image(x + cw / 2, y + ch / 2, key).setDisplaySize(cw, ch).setDepth(DEPTH.scene);
       img.setInteractive({ useHandCursor: true });
+      img.setData('aiCard', card);
 
       // 图鉴新条目：卡角一枚朱印
       if (fresh[i]) {

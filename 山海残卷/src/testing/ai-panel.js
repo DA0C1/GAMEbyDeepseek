@@ -27,6 +27,7 @@ function flatten(scene) {
 
 function uiButtons(scene) {
   if (!scene?.children) return [];
+  if (scene.sys.settings.key === 'Reward' && scene.picked) return [];
   const entries = flatten(scene);
   const texts = entries.filter(({ object }) => object.type === 'Text' && object.text);
   const modalDepth = Math.max(-Infinity, ...entries.filter(({ object }) => object.input?.enabled && object.width >= 1590 && object.height >= 890).map(({ depth }) => depth));
@@ -37,10 +38,13 @@ function uiButtons(scene) {
       const bounds = object.getBounds();
       const texture = object.texture?.key || '';
       const cardId = texture.startsWith('card_') ? texture.slice(5).split('_')[0] : null;
+      const card = object.getData?.('aiCard') || (CARDS[cardId] ? { id: cardId, up: texture.includes('_up') } : null);
+      const cardInfo = card ? { id: card.id, name: CARDS[card.id].name, upgraded: !!card.up,
+        cost: CARDS[card.id].cost, description: cardText(card) } : null;
       const labelTexts = texts.filter((entry) => entry.depth === depth && bounds.contains(entry.object.getBounds().centerX, entry.object.getBounds().centerY));
-      const label = cardId && CARDS[cardId] ? `选择 ${CARDS[cardId].name}${texture.includes('_up') ? '＋' : ''}`
+      const label = cardInfo ? `选择 ${cardInfo.name}${cardInfo.upgraded ? '＋' : ''} · 费 ${cardInfo.cost < 0 ? 'X' : cardInfo.cost} · ${cardInfo.description}`
         : (object.text || labelTexts.map((entry) => entry.object.text).join(' · ') || `界面控件 ${objectIds.get(object)}`);
-      return { id: objectIds.get(object), label, object };
+      return { id: objectIds.get(object), label, ...(cardInfo ? { card: cardInfo } : {}), object };
     });
 }
 
@@ -72,7 +76,7 @@ function state() {
     dialogue: scene._dialogue?.getState() || null,
     routes: scene.sys.settings.key === 'Map' && !blocked && !scene._introOpen && !scene._entering
       ? availableNodes(run.map).map((node) => ({ id: node.id, col: node.col, row: node.row, type: node.type, label: NODE_LABEL[node.type] })) : [],
-    buttons: uiButtons(scene).map(({ id, label }) => ({ id, label }))
+    buttons: uiButtons(scene).map(({ id, label, card }) => ({ id, label, ...(card ? { card } : {}) }))
   };
 }
 
