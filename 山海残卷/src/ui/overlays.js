@@ -227,12 +227,15 @@ export function openOverlay(scene, cfg) {
 export function pickCard(scene, cfg) {
   const layer = scene.add.container(0, 0).setDepth(DEPTH.overlay + 20);
   const cards = (cfg.cards || []).filter((c) => !cfg.filter || cfg.filter(c));
+  let closed = false;
 
   const bg = scene.add.graphics();
   bg.fillStyle(OVERLAY_BG, 0.985);
   bg.fillRect(0, 0, W, H);
   layer.add(bg);
   const blocker = scene.add.zone(W / 2, H / 2, W, H).setInteractive();
+  blocker.on('pointerdown', (_p, _x, _y, event) => event?.stopPropagation());
+  blocker.on('pointerup', (_p, _x, _y, event) => event?.stopPropagation());
   layer.add(blocker);
 
   const frame = scene.add.graphics();
@@ -292,13 +295,17 @@ export function pickCard(scene, cfg) {
 
       const z = scene.add.zone(cx - cw / 2, cy - ch / 2, cw, ch).setOrigin(0, 0)
         .setInteractive({ useHandCursor: true });
+      z.setData('aiCard', card);
       content.add(z);
       z.on('pointerover', () => {
         img.setScale(img.scaleX * 1.06, img.scaleY * 1.06);
         audio.sfx('hover');
       });
       z.on('pointerout', () => img.setScale(cw / img.width, ch / img.height));
-      z.on('pointerdown', () => {
+      z.on('pointerdown', (_p, _x, _y, event) => {
+        event?.stopPropagation();
+        if (closed) return;
+        closed = true;
         audio.sfx('click');
         layer.destroy(true);
         if (cfg.onPick) cfg.onPick(card);
@@ -332,10 +339,17 @@ export function pickCard(scene, cfg) {
   }
 
   const cancel = () => {
+    if (closed) return;
+    closed = true;
     layer.destroy(true);
     if (cfg.onCancel) cfg.onCancel();
   };
   layerButton(scene, layer, W / 2 - 80, H - 76, 160, 44, '作　罢', cancel, { size: 19 });
+  scene.input.keyboard?.on('keydown-ESC', cancel);
+  layer.once('destroy', () => {
+    closed = true;
+    scene.input.keyboard?.off('keydown-ESC', cancel);
+  });
 
   return { close: cancel, layer };
 }
@@ -349,7 +363,7 @@ const RULES = [
     lines: [
       '起手抽 5 张，每回合 3 点灵力（破一卷 +1）。',
       '点牌再点敌人，或把牌直接拖到目标身上。',
-      '护甲回合结束清零，灵力不累积。',
+      '护甲在下回合开始时清零，灵力不累积。',
       '左上三格是药水：点击即用，不占灵力。'
     ]
   },
@@ -412,6 +426,8 @@ export function openRules(scene, opt = {}) {
   layer.add(bg);
 
   const blocker = scene.add.zone(W / 2, H / 2, W, H).setInteractive();
+  blocker.on('pointerdown', (_pointer, _x, _y, event) => event?.stopPropagation());
+  blocker.on('pointerup', (_pointer, _x, _y, event) => event?.stopPropagation());
   layer.add(blocker);
 
   const frame = scene.add.graphics();
@@ -483,13 +499,18 @@ export function openRules(scene, opt = {}) {
     }).setOrigin(0.5);
   layer.add(tip);
 
+  let closed = false;
+  layer.once('destroy', () => { closed = true; });
   const close = () => {
+    if (closed) return;
+    closed = true;
     layer.destroy(true);
     if (opt.onClose) opt.onClose();
   };
   const okBtn = makeButton(scene, W / 2 - 90, H - 104, 180, 48, '知　道　了', close,
     { size: 18, font: FONT.song, depth: DEPTH.overlay + 12 });
-  layer.add(okBtn);
+  // makeButton 的命中区默认是独立对象；跟随浮层，不能落在高层遮罩后。
+  layer.add([okBtn, okBtn.zone]);
 
   return { close, layer };
 }

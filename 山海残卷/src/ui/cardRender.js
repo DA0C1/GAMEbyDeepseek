@@ -82,7 +82,7 @@ function blot(ctx, cx, cy, r, seed, alpha, color) {
   ctx.globalAlpha = 1;
 }
 
-function paint(ctx, card) {
+function paint(ctx, card, displayCost) {
   const W = CARD.texW;
   const H = CARD.texH;
   const d = card.def;
@@ -256,6 +256,7 @@ function paint(ctx, card) {
   // X 费不吃轻铭刻（costOf 对 X 费直接返回全部灵力）
   let cost = card.free ? 0 : d.cost;
   if (cost >= 0 && card.rune === 'qing') cost = Math.max(0, cost - 1);
+  if (Number.isFinite(displayCost) && displayCost >= 0 && d.cost >= 0) cost = displayCost;
   ctx.save();
   ctx.translate(44, 44);
   // 八角印章底
@@ -330,28 +331,28 @@ function paint(ctx, card) {
   ctx.restore();
 
   const txt = cardText(card);
-  // 用最宽字重测量，避免绘制时数字加粗导致溢出
-  ctx.font = `700 23px ${FONT.hei}`;
-  ctx.textBaseline = 'top';
+  // 用最宽字重测量；长描述缩小字号，而不是挤到图案或底部标记上。
   const maxW = W - 52;
-  const chars = txt.split('');
-  const lines = [];
-  let line = '';
-  for (const ch of chars) {
-    if (ch === '\n') { lines.push(line); line = ''; continue; }
-    const test = line + ch;
-    if (ctx.measureText(test).width > maxW && line !== '') { lines.push(line); line = ch; }
-    else line = test;
-  }
-  if (line) lines.push(line);
-
-  const lineH = 32;
-  // 描述在分隔线下方一块区域内垂直居中
   const blockTop = 292, blockBottom = H - 30;
+  let fontSize = 23, lineH = 32, lines = [];
+  for (; fontSize >= 14; fontSize--) {
+    ctx.font = `700 ${fontSize}px ${FONT.hei}`;
+    lineH = Math.round(fontSize * 32 / 23);
+    lines = [];
+    let line = '';
+    for (const ch of txt) {
+      if (ch === '\n') { lines.push(line); line = ''; continue; }
+      if (ctx.measureText(line + ch).width > maxW && line !== '') { lines.push(line); line = ch; }
+      else line += ch;
+    }
+    if (line) lines.push(line);
+    if (lines.length * lineH <= blockBottom - blockTop || fontSize === 14) break;
+  }
+  ctx.textBaseline = 'top';
   let ty = blockTop + (blockBottom - blockTop - lines.length * lineH) / 2;
   for (const ln of lines) {
     let lw = 0;
-    ctx.font = `700 23px ${FONT.hei}`;
+    ctx.font = `700 ${fontSize}px ${FONT.hei}`;
     for (const ch of ln) lw += ctx.measureText(ch).width;
     let tx = cx - lw / 2;
 
@@ -367,7 +368,7 @@ function paint(ctx, card) {
         }
       }
       if (matched) {
-        ctx.font = `500 23px ${FONT.hei}`;
+        ctx.font = `500 ${fontSize}px ${FONT.hei}`;
         ctx.fillStyle = matchedColor;
         ctx.fillText(matched, tx, ty);
         tx += ctx.measureText(matched).width;
@@ -376,10 +377,10 @@ function paint(ctx, card) {
       }
       const ch = ln[i];
       if (/[0-9+\-]/.test(ch)) {
-        ctx.font = `700 23px ${FONT.hei}`;
+        ctx.font = `700 ${fontSize}px ${FONT.hei}`;
         ctx.fillStyle = '#b23a2e';
       } else {
-        ctx.font = `500 23px ${FONT.hei}`;
+        ctx.font = `500 ${fontSize}px ${FONT.hei}`;
         ctx.fillStyle = '#3a342c';
       }
       ctx.fillText(ch, tx, ty);
@@ -454,18 +455,24 @@ function paint(ctx, card) {
 
 const cache = new Map();
 
-export function ensureCardTexture(scene, card) {
-  const key = 'card_' + card.id + (card.up ? '_up' : '') + (card.rune ? '_' + card.rune : '') + (card.free ? '_free' : '');
+export function ensureCardTexture(scene, card, displayCost) {
+  let key = 'card_' + card.id + (card.up ? '_up' : '') + (card.rune ? '_' + card.rune : '') + (card.free ? '_free' : '');
   if (!card.def) {
     const d = CARDS[card.id];
     if (!d) return 'card_cijian';
     card = { ...card, def: d };
   }
+  // 战斗费用只参与显示与纹理缓存，不写进逻辑卡牌或牌组/图鉴。
+  const baseCost = card.free ? 0 : card.def.cost < 0 ? card.def.cost
+    : Math.max(0, card.def.cost - (card.rune === 'qing' ? 1 : 0));
+  if (Number.isFinite(displayCost) && displayCost >= 0 && card.def.cost >= 0 && displayCost !== baseCost) {
+    key += '_cost' + displayCost;
+  }
   if (cache.has(key) && scene.textures.exists(key)) return key;
   if (!scene.textures.exists(key)) {
     const tex = scene.textures.createCanvas(key, CARD.texW, CARD.texH);
     if (!tex) return 'card_cijian';
-    paint(tex.getContext(), card);
+    paint(tex.getContext(), card, displayCost);
     tex.refresh();
   }
   cache.set(key, true);

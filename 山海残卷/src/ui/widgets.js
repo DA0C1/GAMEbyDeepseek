@@ -52,21 +52,33 @@ export function makeButton(scene, x, y, w, h, label, onClick, opt = {}) {
     draw();
     scene.tweens.add({ targets: c, scaleX: 1, scaleY: 1, duration: 120, ease: 'Cubic.easeOut' });
   });
-  let lastClick = 0;
-  zone.on('pointerdown', () => {
+  let lastClick = -Infinity, pending = null, disposed = false;
+  zone.on('pointerdown', (_pointer, _x, _y, event) => {
+    event?.stopPropagation();
+    if (disposed || pending) return;
     // 防手抖/双击：40ms 延迟回调期间重复点击会排队，导致开两次局
     const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
     if (now - lastClick < 320) return;
     lastClick = now;
     audio.sfx('click');
     scene.tweens.add({ targets: c, scaleX: 0.98, scaleY: 0.98, duration: 60, yoyo: true });
-    if (onClick) scene.time.delayedCall(40, onClick);
+    if (onClick) pending = scene.time.delayedCall(40, () => {
+      pending = null;
+      if (!disposed) onClick();
+    });
   });
 
   c.zone = zone;
   c.hitZone = zone;
   const origDestroy = c.destroy.bind(c);
-  c.destroy = function () { try { zone.destroy(); } catch (e) {} origDestroy(); };
+  c.destroy = function () {
+    if (disposed) return;
+    disposed = true;
+    pending?.remove(false);
+    pending = null;
+    try { zone.destroy(); } catch (e) {}
+    origDestroy();
+  };
   return c;
 }
 
