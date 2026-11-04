@@ -6,47 +6,13 @@ import { CARDS, cardText } from '../data/cards.js';
 import { RELICS } from '../data/relics.js';
 import { POTIONS } from '../data/potions.js';
 
+import { flatten, uiButtons } from './ui-actions.js';
+
 const log = [];
-const objectIds = new WeakMap();
-let nextId = 1;
 const status = document.getElementById('ai-status');
 const currentScene = () => window.__game?.scene.getScenes(true).at(-1);
 const seedValue = () => Number(document.getElementById('ai-seed').value) >>> 0;
 
-function flatten(scene) {
-  const entries = [];
-  function visit(object, rootDepth, visible = true) {
-    visible = visible && object.visible !== false && object.active !== false && (object.alpha === undefined || object.alpha > 0.01);
-    if (!visible) return;
-    entries.push({ object, depth: rootDepth });
-    for (const child of object.list || []) visit(child, rootDepth, visible);
-  }
-  for (const object of scene.children.list) visit(object, object.depth);
-  return entries;
-}
-
-function uiButtons(scene) {
-  if (!scene?.children) return [];
-  if (scene.sys.settings.key === 'Reward' && scene.picked) return [];
-  const entries = flatten(scene);
-  const texts = entries.filter(({ object }) => object.type === 'Text' && object.text);
-  const modalDepth = Math.max(-Infinity, ...entries.filter(({ object }) => object.input?.enabled && object.width >= 1590 && object.height >= 890).map(({ depth }) => depth));
-  return entries.filter(({ object, depth }) => object.input?.enabled && depth >= modalDepth && object.listenerCount('pointerdown') > 0
-    && object.width < 1500 && !scene.enemyViews?.some((view) => view.img === object))
-    .map(({ object, depth }) => {
-      if (!objectIds.has(object)) objectIds.set(object, `ui-${nextId++}`);
-      const bounds = object.getBounds();
-      const texture = object.texture?.key || '';
-      const cardId = texture.startsWith('card_') ? texture.slice(5).split('_')[0] : null;
-      const card = object.getData?.('aiCard') || (CARDS[cardId] ? { id: cardId, up: texture.includes('_up') } : null);
-      const cardInfo = card ? { id: card.id, name: CARDS[card.id].name, upgraded: !!card.up,
-        cost: CARDS[card.id].cost, description: cardText(card) } : null;
-      const labelTexts = texts.filter((entry) => entry.depth === depth && bounds.contains(entry.object.getBounds().centerX, entry.object.getBounds().centerY));
-      const label = cardInfo ? `选择 ${cardInfo.name}${cardInfo.upgraded ? '＋' : ''} · 费 ${cardInfo.cost < 0 ? 'X' : cardInfo.cost} · ${cardInfo.description}`
-        : (object.text || labelTexts.map((entry) => entry.object.text).join(' · ') || `界面控件 ${objectIds.get(object)}`);
-      return { id: objectIds.get(object), label, ...(cardInfo ? { card: cardInfo } : {}), object };
-    });
-}
 
 function state() {
   const scene = currentScene();
@@ -60,7 +26,7 @@ function state() {
   return {
     ready: true, scene: scene.sys.settings.key, seed: getSeed(), modal, continueScene,
     text: flatten(scene).filter(({ object }) => object.type === 'Text' && object.text).map(({ object }) => object.text),
-    player: player ? { hp: player.hp, maxHp: player.maxHp, block: player.block, energy: player.energy, energyMax: player.energyMax,
+    player: player ? { hp: player.hp, maxHp: player.maxHp, block: player.block, energy: player.energy, energyMax: battle ? battle.energyMax() : player.energyMax,
       gold: player.gold, buffs: { ...player.buffs }, deckSize: player.deck.length,
       relics: player.relics.map((id) => ({ id, name: RELICS[id]?.name, description: RELICS[id]?.desc })),
       potions: player.potions.map((id, index) => ({ id, index, name: POTIONS[id]?.name, description: POTIONS[id]?.desc })) } : null,
@@ -69,10 +35,15 @@ function state() {
       drawCount: battle.drawPile.length, discardCount: battle.discardPile.length, exhaustCount: battle.exhaustPile.length,
       hand: battle.hand.map((card, index) => ({ index, id: card.id, name: CARDS[card.id]?.name, description: cardText(card),
         cost: battle.costOf(card, true), target: card.def.target, playable: !scene.isInputBlocked() && battle.canPlay(card) })),
-      enemies: battle.enemies.map((enemy) => ({ uid: enemy.uid, id: enemy.id, name: enemy.name, alive: enemy.alive,
-        hp: enemy.hp, maxHp: enemy.maxHp, block: enemy.block, buffs: { ...enemy.buffs }, intent: { ...enemy.move,
-          damagePerHit: enemy.move?.dmg ? battle.incomingDamage(Math.round((enemy.move.dmg * (enemy.dmgMul || 1) + (enemy.buffs.str || 0)) * (enemy.buffs.weak > 0 ? 0.75 : 1))) : 0,
-          hits: enemy.move?.hits || 1 } })) } : null,
+      enemies: battle.enemies.map((enemy) => {
+        const forecast = battle.previewEnemyIntent(enemy);
+        return { uid: enemy.uid, id: enemy.id, name: enemy.name, alive: enemy.alive,
+          hp: enemy.hp, maxHp: enemy.maxHp, block: enemy.block, buffs: { ...enemy.buffs },
+          intent: { ...forecast.move, damagePerHit: forecast.damageByHit[0] || 0,
+            damageByHit: forecast.damageByHit, totalDamage: forecast.totalDamage,
+            hits: forecast.move?.hits || (forecast.move ? 1 : 0),
+            phaseChange: forecast.phaseChange, willDie: forecast.willDie, conditional: true } };
+      }) } : null,
     dialogue: scene._dialogue?.getState() || null,
     routes: scene.sys.settings.key === 'Map' && !blocked && !scene._introOpen && !scene._entering
       ? availableNodes(run.map).map((node) => ({ id: node.id, col: node.col, row: node.row, type: node.type, label: NODE_LABEL[node.type] })) : [],
