@@ -63,9 +63,11 @@ window.__aiTest.log();
 | `potion` | `index` | 使用当前药水 |
 | `dialogue_next` | 无 | 补全本句或推进一句 |
 | `continue_scene` | 无 | 地图引言、际遇结果的「点击继续」 |
-| `open_deck` / `close_overlay` | 无 | 牌组、浮层开关 |
+| `open_deck` / `close_overlay` | 无 | 牌组、规则、暂停与图鉴详情浮层开关；对话请用 `dialogue_next` |
 | `route` | `id` | 进入快照列出的可达节点，id 为数字 |
 | `ui` | `id` | 激活当前快照列出的可见控件 |
 | `test_defeat_enemy` | `target` | 测试专用击杀，用于验证死亡与结算 |
 
 接口版本为 `window.__aiTest.version === 1`。当前版本不提供任意脚本执行、存档删除或正常版后台自动游玩。
+
+图鉴分类及已识条目以名称显示为操作，未识条目不暴露查看动作。图鉴详情中 `state().modal` 为 `detail`，使用 `close_overlay` 回到原分类和页码。分页边界的无效按钮不列入可用动作。
