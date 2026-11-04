@@ -3,3 +3,4 @@ dist/
 test-artifacts/
 *.log
 .DS_Store
+.game-sync/
