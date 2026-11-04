@@ -11,7 +11,8 @@
     "test:interactions": "node tools/interaction-check.cjs",
     "test:portable": "node tools/portable-check.cjs",
     "build:single": "node tools/build-single.cjs",
-    "build:ai": "node tools/build-single.cjs --ai"
+    "build:ai": "node tools/build-single.cjs --ai",
+    "test:portable-static": "node tools/portable-static-check.cjs"
   },
   "keywords": [],
   "author": "",
