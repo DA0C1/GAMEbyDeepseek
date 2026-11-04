@@ -831,9 +831,11 @@ export class Battle extends Emitter {
     let s = stacks;
     if (name === 'poison' && target !== this.player) s += (this.player.buffs.toxic || 0);
     if (name === 'burn' && target !== this.player && this.activeSets.fire) s += 1;
-    target.buffs[name] = (target.buffs[name] || 0) + s;
+    const before = target.buffs[name] || 0;
+    target.buffs[name] = before + s;
     this.relicHook('applyBuff', target, name, s);
-    this.emit('buff', { target, name, stacks: s });
+    // 朱雀羽等钩子会追加层数，提示应报告实际增加值而不是钩子前的输入。
+    this.emit('buff', { target, name, stacks: (target.buffs[name] || 0) - before });
   }
 
   applyAll(name, stacks) {
@@ -855,8 +857,10 @@ export class Battle extends Emitter {
   healEnemies(n) {
     this.enemies.forEach((e) => {
       if (e.alive) {
+        const before = e.hp;
         e.hp = Math.min(e.maxHp, e.hp + n);
-        this.emit('heal', { target: e, amount: n });
+        const gained = e.hp - before;
+        if (gained > 0) this.emit('heal', { target: e, amount: gained });
       }
     });
   }
