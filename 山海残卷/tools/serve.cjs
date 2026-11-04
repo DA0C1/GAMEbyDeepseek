@@ -19,6 +19,7 @@ function createServer() {
     let file;
     try {
       const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+      if (pathname.includes('\0')) throw new Error('Invalid path');
       file = path.resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
       const relative = path.relative(root, file);
       if (relative.startsWith('..') || path.isAbsolute(relative)) throw new Error('Outside game directory');
