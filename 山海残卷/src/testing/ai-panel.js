@@ -71,7 +71,7 @@ function state() {
         cost: battle.costOf(card, true), target: card.def.target, playable: !scene.isInputBlocked() && battle.canPlay(card) })),
       enemies: battle.enemies.map((enemy) => ({ uid: enemy.uid, id: enemy.id, name: enemy.name, alive: enemy.alive,
         hp: enemy.hp, maxHp: enemy.maxHp, block: enemy.block, buffs: { ...enemy.buffs }, intent: { ...enemy.move,
-          damagePerHit: enemy.move?.dmg ? Math.round((enemy.move.dmg * (enemy.dmgMul || 1) + (enemy.buffs.str || 0)) * (enemy.buffs.weak > 0 ? 0.75 : 1)) : 0,
+          damagePerHit: enemy.move?.dmg ? battle.incomingDamage(Math.round((enemy.move.dmg * (enemy.dmgMul || 1) + (enemy.buffs.str || 0)) * (enemy.buffs.weak > 0 ? 0.75 : 1))) : 0,
           hits: enemy.move?.hits || 1 } })) } : null,
     dialogue: scene._dialogue?.getState() || null,
     routes: scene.sys.settings.key === 'Map' && !blocked && !scene._introOpen && !scene._entering

@@ -337,7 +337,7 @@ export class BattleScene extends Phaser.Scene {
     B.on('bossPhase', ({ enemy, phase }) => {
       const ev = this.enemyViews.find((v) => v.foe === enemy);
       audio.sfx('bossWarn');
-      this.cameras.main.shake(420, 0.012);
+      shake(this, 0.012, 420);
       this.cameras.main.flash(300, 178, 58, 46, false);
       if (ev) {
         this.floatText(ev.x, ev.y - ev.displayH * 0.4, phase.name, PAL.cinnabar, 44);
@@ -377,7 +377,7 @@ export class BattleScene extends Phaser.Scene {
       const ev = this.enemyViews.find((v) => v.foe === enemy);
       if (ev) {
         this.floatText(ev.x, ev.y - ev.displayH * 0.34, '狂 暴', PAL.cinnabar, 34);
-        this.cameras.main.shake(180, 0.006);
+        shake(this, 0.006, 180);
       }
       audio.sfx('bossWarn');
       this.updateEnemyTraits();
@@ -634,7 +634,7 @@ export class BattleScene extends Phaser.Scene {
 
     let dmgText = '';
     if (mv.dmg) {
-      const base = Math.round((mv.dmg * (f.dmgMul || 1) + (f.buffs.str || 0)) * ((f.buffs.weak || 0) > 0 ? 0.75 : 1));
+      const base = this.battle.incomingDamage(Math.round((mv.dmg * (f.dmgMul || 1) + (f.buffs.str || 0)) * ((f.buffs.weak || 0) > 0 ? 0.75 : 1)));
       dmgText = String(base) + (mv.hits > 1 ? '×' + mv.hits : '');
     } else if (mv.block) {
       dmgText = '+' + mv.block;
@@ -659,8 +659,8 @@ export class BattleScene extends Phaser.Scene {
   intentTipLines(mv, f) {
     const out = [];
     if (mv.dmg) {
-      const base = Math.round((mv.dmg * (f.dmgMul || 1) + (f.buffs.str || 0))
-        * ((f.buffs.weak || 0) > 0 ? 0.75 : 1));
+      const base = this.battle.incomingDamage(Math.round((mv.dmg * (f.dmgMul || 1) + (f.buffs.str || 0))
+        * ((f.buffs.weak || 0) > 0 ? 0.75 : 1)));
       out.push('伤害 ' + base + (mv.hits > 1 ? ' × ' + mv.hits : ''));
     }
     if (mv.block) out.push('护甲 +' + mv.block);
@@ -740,6 +740,7 @@ export class BattleScene extends Phaser.Scene {
 
   refreshBuffs() {
     this.drawPlayerBuffs();
+    this.updateEnemyIntents();
   }
 
   /* ---------------- 玩家 HUD ---------------- */
@@ -1679,7 +1680,7 @@ export class BattleScene extends Phaser.Scene {
   onLose() {
     this.uiLocked = true;
     audio.sfx('lose');
-    this.cameras.main.shake(600, 0.012);
+    shake(this, 0.012, 600);
     this.time.delayedCall(200, () => {
       this.cameras.main.fadeOut(1200, 20, 17, 14);
     });
@@ -1701,6 +1702,17 @@ export class BattleScene extends Phaser.Scene {
     run.stats.cardsPlayed += b.cardsPlayed;
     if (this.nodeType === 'elite') run.stats.elites++;
     if (b.outHeal > 0) run.heal(b.outHeal);
+
+    // 首领会提前转入剧情，药水必须在所有胜利分支之前发放。
+    let potion = null;
+    const chance = this.nodeType === 'boss' ? 1 : (this.nodeType === 'elite' ? 0.65 : 0.3);
+    if (random() < chance && run.player.potions.length < POTION_MAX) {
+      potion = rollPotion();
+      if (potion) run.addPotion(potion);
+    }
+    if (this.nodeType === 'boss' && potion) {
+      this.floatText(W / 2, 356, '获得药水 · ' + POTIONS[potion].name, PAL.gold, 24);
+    }
 
     // Boss：残页 + 推进卷目；胜利后先演守卷之兽的遗言，再进结算
     if (this.nodeType === 'boss') {
@@ -1756,14 +1768,6 @@ export class BattleScene extends Phaser.Scene {
       }
       run.gold(45);
       this.floatText(W / 2, 356, '兽 髓 墨 +45', PAL.gold, 22);
-    }
-
-    // 药水掉落：普通 30% / 精英 65% / 守卷之兽必掉
-    let potion = null;
-    const chance = this.nodeType === 'boss' ? 1 : (this.nodeType === 'elite' ? 0.65 : 0.3);
-    if (random() < chance && run.player.potions.length < POTION_MAX) {
-      potion = rollPotion();
-      if (potion) run.addPotion(potion);
     }
 
     this.cameras.main.fadeOut(400, 20, 17, 14);

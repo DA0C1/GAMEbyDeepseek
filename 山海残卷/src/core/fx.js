@@ -1,6 +1,7 @@
 /* 特效工厂：墨点、朱砂尘、伤害数字、镜头反馈 */
 
 import { W, H, PAL, FONT, DEPTH } from './config.js';
+import { save } from './save.js';
 
 const TEX = {};
 
@@ -91,6 +92,7 @@ export function damageNumber(scene, x, y, text, opt = {}) {
 }
 
 export function shake(scene, intensity = 0.006, duration = 180) {
+  if (save.data && !save.data.settings.shake) return;
   try { scene.cameras.main.shake(duration, intensity); } catch (e) { /* ignore */ }
 }
 

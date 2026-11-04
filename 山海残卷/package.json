@@ -8,6 +8,7 @@
     "start": "node tools/serve.cjs",
     "test": "node --test tests/*.test.mjs",
     "test:browser": "node tools/browser-check.cjs",
+    "test:interactions": "node tools/interaction-check.cjs",
     "test:portable": "node tools/portable-check.cjs",
     "build:single": "node tools/build-single.cjs",
     "build:ai": "node tools/build-single.cjs --ai"

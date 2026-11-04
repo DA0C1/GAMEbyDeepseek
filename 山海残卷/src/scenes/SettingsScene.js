@@ -11,6 +11,8 @@ export class SettingsScene extends Phaser.Scene {
   init(data) { this.from = (data && data.from) || 'Title'; }
 
   create() {
+    const refreshers = [];
+    let didReset = false;
     this.add.rectangle(W / 2, H / 2, W, H, 0x12100c, 0.72).setDepth(DEPTH.overlay);
     const g = this.add.graphics().setDepth(DEPTH.overlay + 1);
     drawPanel(g, W / 2 - 330, 160, 660, 560, { fill: 0xfaf4e6, alpha: 0.98, gold: true });
@@ -29,6 +31,7 @@ export class SettingsScene extends Phaser.Scene {
       const refresh = () => {
         valT.setText(Math.round(save.data.settings[key] * 100) + '%');
       };
+      refreshers.push(refresh);
       refresh();
 
       makeButton(this, W / 2 + 60, y - 10, 60, 42, '−', () => {
@@ -51,36 +54,39 @@ export class SettingsScene extends Phaser.Scene {
 
     // 震动
     text(this, W / 2 - 250, 470, '屏幕震动', 18, { font: FONT.hei, color: PAL.ink2 }).setDepth(DEPTH.overlay + 2);
-    const shakeBtn = makeButton(this, W / 2 + 60, 456, 130, 42, save.data.settings.shake ? '开' : '关', null, {
-      size: 20, depth: DEPTH.overlay + 2
-    });
-    shakeBtn.removeAllListeners();
-    shakeBtn.on('pointerdown', () => {
+    const shakeBtn = makeButton(this, W / 2 + 60, 456, 130, 42, save.data.settings.shake ? '开' : '关', () => {
       save.data.settings.shake = !save.data.settings.shake;
       shakeBtn.list[1].setText(save.data.settings.shake ? '开' : '关');
       save.write();
       audio.sfx('click');
-    });
+    }, { size: 20, depth: DEPTH.overlay + 2 });
 
     // 重置
     let confirm = false;
-    const resetBtn = makeButton(this, W / 2 - 250, 530, 220, 46, '清除进度', null, {
-      size: 16, depth: DEPTH.overlay + 2
-    });
-    resetBtn.removeAllListeners();
-    resetBtn.on('pointerdown', () => {
+    const resetBtn = makeButton(this, W / 2 - 250, 530, 220, 46, '清除进度', () => {
       if (!confirm) {
         confirm = true;
         resetBtn.list[1].setText('再点一次确认');
         resetBtn.list[1].setColor(PAL.cinnabar);
         return;
       }
+      if (didReset) return;
       save.reset();
+      didReset = true;
+      audio.setVolumes();
+      refreshers.forEach(refresh => refresh());
+      shakeBtn.list[1].setText(save.data.settings.shake ? '开' : '关');
       audio.sfx('debuff');
       resetBtn.list[1].setText('已清除');
-    });
+      resetBtn.zone.disableInteractive();
+    }, { size: 16, depth: DEPTH.overlay + 2 });
 
     makeButton(this, W / 2 - 110, H - 200, 220, 56, '返　回', () => {
+      if (didReset && this.from === 'Title') {
+        this.scene.stop('Title');
+        this.scene.start('Title');
+        return;
+      }
       this.scene.stop();
       const prev = this.scene.get(this.from);
       if (prev) this.scene.resume(this.from);

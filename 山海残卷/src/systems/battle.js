@@ -55,6 +55,7 @@ export class Battle extends Emitter {
     this.timer = 0;
     this.enemyQueue = [];
     this.enemyTimer = 0;
+    this._vulnAtEnemyStart = 0;
     this.playingCard = null;
     this.lastTaken = 0;
     this.bonusGold = 0;
@@ -450,6 +451,8 @@ export class Battle extends Emitter {
 
     this.discardAll();
     this.relicHook('turnEnd');
+    // 铁甲等回合末效果可能已经击败最后一只异兽，不能再进入敌方回合。
+    if (this.phase === 'won' || this.phase === 'lost') return;
 
     if (p.buffs.burn > 0) {
       const bd = p.buffs.burn + this.burnBonus();
@@ -462,16 +465,15 @@ export class Battle extends Emitter {
     delete p.buffs.comboDmg;
     delete p.buffs.drawOnPlay;
 
-    ['weak', 'vuln'].forEach((k) => {
-      if (p.buffs[k]) {
-        p.buffs[k] -= 1;
-        if (p.buffs[k] <= 0) delete p.buffs[k];
-      }
-    });
+    if (p.buffs.weak > 0) {
+      p.buffs.weak -= 1;
+      if (p.buffs.weak <= 0) delete p.buffs.weak;
+    }
 
     if (!p.alive) { this.lose(); return; }
 
     this.phase = 'enemy';
+    this._vulnAtEnemyStart = p.buffs.vuln || 0;
     this.enemyQueue = this.enemies.filter((e) => e.alive).slice();
     this.enemyTimer = 0.45;
     this.emit('enemyTurnStart');
@@ -513,6 +515,7 @@ export class Battle extends Emitter {
   }
 
   enemyAct(e) {
+    if (!e.alive || this.phase === 'won' || this.phase === 'lost' || this.finished) return;
     const mv = e.move || pickMove(e);
 
     // 异兽护甲只维持到它自己的下一个回合（否则会永久叠加）
@@ -562,7 +565,7 @@ export class Battle extends Emitter {
       if (mv.dmg) {
         const dmg = Math.round((mv.dmg * (e.dmgMul || 1) + (e.buffs.str || 0)) * ((e.buffs.weak || 0) > 0 ? 0.75 : 1));
         for (let i = 0; i < (mv.hits || 1); i++) {
-          if (!this.player.alive) break;
+          if (!this.player.alive || !e.alive) break;
           dealt += this.hurtPlayer(dmg);
           if (mv.playerBuff) this.apply(this.player, mv.playerBuff[0], mv.playerBuff[1]);
           if (this.player.buffs.thorns > 0 && e.alive) {
@@ -573,6 +576,8 @@ export class Battle extends Emitter {
           }
         }
       }
+      // 反伤会在连击中途击杀攻击者；尸体不能继续吸血、加甲或施放后续效果。
+      if (!e.alive || !this.player.alive) return;
       if (tr && dealt > 0) {
         if (tr.lifesteal) {
           const h = Math.min(Math.round(dealt * tr.lifesteal), e.maxHp - e.hp);
@@ -614,6 +619,11 @@ export class Battle extends Emitter {
         if (this.player.buffs[k] <= 0) delete this.player.buffs[k];
       }
     });
+    // 本轮刚施加的易伤要留给下一次敌方回合，避免一层易伤还没受击就过期。
+    if (this._vulnAtEnemyStart > 0 && this.player.buffs.vuln > 0) {
+      this.player.buffs.vuln -= 1;
+      if (this.player.buffs.vuln <= 0) delete this.player.buffs.vuln;
+    }
     this.turn += 1;
     this.startPlayerTurn(false);
   }
@@ -634,6 +644,7 @@ export class Battle extends Emitter {
       if (!opt.pure) {
         const p = this.player;
         dmg += (p.buffs.str || 0);
+        if (card && card.rune === 'feng') dmg += 3;
         if (p.buffs.weak > 0) dmg *= 0.75;
         if (!opt.pierce && target.buffs.vuln > 0) dmg *= 1.5;
         dmg = this.calcDamage(card, dmg, target);
@@ -709,11 +720,18 @@ export class Battle extends Emitter {
     return dmg;
   }
 
+  // 护甲前的单段受击数值，由实战、意图提示与 AI 可读状态共用。
+  incomingDamage(amount) {
+    let dmg = Math.round(amount);
+    if (this.player.buffs.vuln > 0) dmg = Math.round(dmg * 1.5);
+    if (this.player.buffs.halve > 0) dmg = Math.ceil(dmg / 2);
+    return dmg;
+  }
+
   hurtPlayer(amount, opt = {}) {
     const p = this.player;
     if (!p.alive) return 0;
-    let dmg = Math.round(amount);
-    if (p.buffs.halve > 0 && !opt.raw) dmg = Math.ceil(dmg / 2);
+    let dmg = opt.raw ? Math.round(amount) : this.incomingDamage(amount);
 
     let blocked = 0;
     if (!opt.raw && p.block > 0) {
@@ -910,20 +928,12 @@ export class Battle extends Emitter {
       this.chainEl = null;
     }
 
-    // 铭刻·锋锐：临时力量，让本牌每段伤害都吃到
-    const hadStr = this.player.buffs.str || 0;
-    if (card.rune === 'feng') this.player.buffs.str = hadStr + 3;
-
     try {
       card.def.play(this, t, cardVars(card));
     } catch (e) {
       console.error('[card]', card.id, e);
     }
 
-    if (card.rune === 'feng') {
-      if (hadStr > 0) this.player.buffs.str = hadStr;
-      else delete this.player.buffs.str;
-    }
     this.playingCard = null;
 
     // 铭刻·其余
@@ -975,7 +985,7 @@ export class Battle extends Emitter {
   }
 
   lose() {
-    if (this.finished) return;
+    if (this.finished || this.phase === 'won' || this.phase === 'lost') return;
     this.phase = 'lost';
     this.timer = 1.4;
     this.player.alive = false;
