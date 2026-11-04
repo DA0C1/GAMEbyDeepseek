@@ -25,6 +25,12 @@ function applyCamera(scene) {
   const gh = Math.round(H * HI.s);
   (scene?.cameras?.cameras || []).forEach((cam) => {
     try {
+      // A paused impact animation may still hold the previous zoom baseline.
+      // Stop it before resizing, or resuming Settings would restore that scale.
+      if (cam._zoomPunch) {
+        scene.tweens?.killTweensOf(cam);
+        cam._zoomPunch = false;
+      }
       cam.setSize(gw, gh);
       cam.setZoom(HI.s);
       cam.centerOn(W / 2, H / 2);

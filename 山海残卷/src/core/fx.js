@@ -165,9 +165,17 @@ export function slashArc(scene, x1, y1, x2, y2, opt = {}) {
 
 export function flash(scene, color = 0xb23a2e, alpha = 0.3, duration = 220) {
   try {
-    const c = Phaser.Display.Color.HexStringToColor(color);
-    scene.cameras.main.flash(duration, c.red, c.green, c.blue, false);
-  } catch (e) { /* ignore */ }
+    const rgb = typeof color === 'number' ? color : Phaser.Display.Color.HexStringToColor(color).color;
+    const opacity = Number.isFinite(alpha) ? Math.max(0, Math.min(1, alpha)) : 0.3;
+    if (opacity === 0) return null;
+    // 独立薄墨层尊重调用方的透明度，不改相机闪光的持久 alpha，
+    // 也不会影响随后受击/首领切相使用的原生相机效果。
+    const veil = scene.add.rectangle(W / 2, H / 2, W, H, rgb, 1)
+      .setScrollFactor(0).setDepth(DEPTH.overlay - 5).setAlpha(opacity);
+    scene.tweens.add({ targets: veil, alpha: 0, duration,
+      onComplete: () => veil.destroy() });
+    return veil;
+  } catch (e) { return null; }
 }
 
 /* 墨迹转场：在场景上盖一层墨，再化开 */
