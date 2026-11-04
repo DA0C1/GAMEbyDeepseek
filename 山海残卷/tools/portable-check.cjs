@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs/promises');
 const path = require('node:path');
 const puppeteer = require('puppeteer-core');
 const { createServer } = require('./serve.cjs');
@@ -17,6 +18,8 @@ async function main() {
     });
     const page = await browser.newPage();
     await page.setViewport({ width: 1600, height: 900 });
+    const artifacts = path.resolve(__dirname, '../test-artifacts');
+    await fs.mkdir(artifacts, { recursive: true });
     const errors = [];
     const externalRequests = [];
     page.on('pageerror', (error) => errors.push(String(error)));
@@ -35,7 +38,7 @@ async function main() {
         await page.click('#ai-scenarios button[data-key="two-enemies"]');
         await page.waitForFunction(() => window.__aiTest.state().battle?.phase === 'player' && !window.__aiTest.state().battle.inputBlocked);
         assert.equal(await page.evaluate(() => window.__aiTest.state().battle.enemies.length), 2);
-        await page.screenshot({ path: path.resolve(__dirname, '../test-artifacts/ai-portable.png') });
+        await page.screenshot({ path: path.join(artifacts, 'ai-portable.png') });
       }
       console.log(`PASS portable ${ai ? 'AI' : 'normal'}: engine, art, music and entry point`);
     }
@@ -43,8 +46,14 @@ async function main() {
     assert.deepEqual(externalRequests, []);
     console.log('PASS portable: zero runtime errors and zero external requests');
   } finally {
-    if (browser) await browser.close();
-    await new Promise((resolve) => server.close(resolve));
+    try {
+      if (browser) await browser.close();
+    } finally {
+      await new Promise(resolve => {
+        server.close(resolve);
+        server.closeAllConnections();
+      });
+    }
   }
 }
 

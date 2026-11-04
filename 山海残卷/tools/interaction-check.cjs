@@ -134,8 +134,14 @@ async function main() {
     assert.deepEqual(failures, [], 'interaction regressions');
     console.log('PASS zero runtime errors');
   } finally {
-    if (browser) await browser.close();
-    await new Promise(resolve => server.close(resolve));
+    try {
+      if (browser) await browser.close();
+    } finally {
+      await new Promise(resolve => {
+        server.close(resolve);
+        server.closeAllConnections();
+      });
+    }
   }
 }
 
