@@ -139,6 +139,7 @@ export function openOverlay(scene, cfg) {
       // 左侧朱砂竖线
       g.fillStyle(0xb23a2e, 0.7);
       g.fillRect(x, y + 16, 2, ih - 32);
+      content.add(g);
 
       // 图标
       const iconCv = scene.textures.exists('relic_' + rid) ? null : null;
@@ -168,7 +169,7 @@ export function openOverlay(scene, cfg) {
       });
       const descT = scene.add.text(x + 118, y + 68, def.desc, {
         fontFamily: FONT.hei, fontSize: '16px', color: 'rgba(202,191,169,0.86)',
-        wordWrap: { width: iw - 150 }, lineSpacing: 6
+        wordWrap: { width: iw - 150, useAdvancedWrap: true }, lineSpacing: 6
       });
       content.add([nameT, descT]);
     });
@@ -287,7 +288,7 @@ export function pickCard(scene, cfg) {
           const lines = diffs.map((d) => `${d.label} ${d.from} → ${d.to}`);
           const dt = scene.add.text(cx, cy + ch / 2 + 13, lines.join('\n'), {
             fontFamily: FONT.hei, fontSize: '13px', color: '#ecd3a1',
-            align: 'center', lineSpacing: 4, wordWrap: { width: cw + 34 }
+            align: 'center', lineSpacing: 4, wordWrap: { width: cw + 34, useAdvancedWrap: true }
           }).setOrigin(0.5, 0);
           content.add(dt);
         }
@@ -486,7 +487,7 @@ export function openRules(scene, opt = {}) {
       const t = scene.add.text(cx + 22, ly, emph ? ln.slice(1) : ln, {
         fontFamily: FONT.hei, fontSize: '14px',
         color: emph ? 'rgba(139,42,32,0.92)' : 'rgba(58,52,44,0.82)',
-        wordWrap: { width: colW - 44 }, lineSpacing: 4
+        wordWrap: { width: colW - 44, useAdvancedWrap: true }, lineSpacing: 4
       });
       layer.add(t);
       ly += t.height + 5;

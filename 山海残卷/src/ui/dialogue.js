@@ -53,7 +53,7 @@ export function showDialogue(scene, opt) {
   // 正文（一次只显示一句，逐字打出）
   const body = scene.add.text(W / 2, boxY - (opt.center ? 12 : 24), '', {
     fontFamily: FONT.song, fontSize: '24px', color: '#f3ecdc',
-    align: 'center', wordWrap: { width: boxW - 110 }, lineSpacing: 10
+    align: 'center', wordWrap: { width: boxW - 110, useAdvancedWrap: true }, lineSpacing: 10
   }).setOrigin(0.5).setDepth(depth + 2);
   objs.push(body);
 
@@ -119,7 +119,10 @@ export function showDialogue(scene, opt) {
     closed = true;
     stopType();
     if (scene._dialogue === handle) scene._dialogue = null;
-    objs.forEach((o) => o.destroy());
+    objs.forEach((o) => {
+      scene.tweens.killTweensOf(o);
+      o.destroy();
+    });
     if (opt.onDone) opt.onDone();
   }
 

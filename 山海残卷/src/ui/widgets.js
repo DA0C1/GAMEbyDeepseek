@@ -104,7 +104,7 @@ export function text(scene, x, y, str, size, opt = {}) {
     color: opt.color || PAL.ink,
     align: opt.align || 'left',
     lineSpacing: opt.lineSpacing || 6,
-    wordWrap: opt.wrap ? { width: opt.wrap, useAdvancedWrap: opt.advancedWrap === true } : undefined
+    wordWrap: opt.wrap ? { width: opt.wrap, useAdvancedWrap: opt.advancedWrap !== false } : undefined
   };
   if (opt.bg) style.backgroundColor = opt.bg;
   if (opt.padding) style.padding = opt.padding;
