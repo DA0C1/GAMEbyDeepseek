@@ -15,6 +15,9 @@ export class ShopScene extends Phaser.Scene {
   constructor() { super('Shop'); }
 
   create() {
+    this._picker = null;
+    this._leaving = false;
+    this.input.enabled = true;
     this.cameras.main.fadeIn(420, 20, 17, 14);
     const act = run.map ? run.map.act : { theme: 'dawn', index: 0 };
     const bgKey = this.textures.exists('bg_shop') ? 'bg_shop' : ('bg_act' + (act.index + 1));
@@ -29,6 +32,7 @@ export class ShopScene extends Phaser.Scene {
     });
 
     const discount = run.player.relics.indexOf('suanpan') >= 0 ? 0.75 : 1;
+    const priced = basePrice => ({ basePrice, price: Math.round(basePrice * discount) });
 
     this.items = [];
     const cards = rollRewards(2, {});
@@ -36,16 +40,16 @@ export class ShopScene extends Phaser.Scene {
     cards.forEach((c, i) => {
       this.items.push({
         kind: 'card', card: c,
-        price: Math.round((46 + i * 12) * discount)
+        ...priced(46 + i * 12)
       });
     });
     const rid = rollRelic(run.player.relics);
-    if (rid) this.items.push({ kind: 'relic', id: rid, price: Math.round(128 * discount) });
-    this.items.push({ kind: 'remove', price: Math.round(68 * discount) });
+    if (rid) this.items.push({ kind: 'relic', id: rid, ...priced(128) });
+    this.items.push({ kind: 'remove', ...priced(68) });
     // 药水货架：小额消费口，袋满不上架
     if (run.player.potions.length < POTION_MAX) {
       const pid = rollPotion();
-      if (pid) this.items.push({ kind: 'potion', id: pid, price: Math.round(32 * discount) });
+      if (pid) this.items.push({ kind: 'potion', id: pid, ...priced(32) });
     }
 
     const cw = 224, ch = 314, gap = 34;
@@ -62,11 +66,7 @@ export class ShopScene extends Phaser.Scene {
     this.goldT = text(this, W / 2, H - 170, '', 22, { originX: 0.5, font: FONT.mono, color: PAL.gold });
     this.refreshGold();
 
-    makeButton(this, W / 2 - 100, H - 120, 200, 56, '离　开', () => {
-      if (run.map && run.map.cur.node) run.map.cur.node.cleared = true;
-      this.cameras.main.fadeOut(350, 20, 17, 14);
-      this.time.delayedCall(380, () => this.scene.start('Map'));
-    }, { size: 22 });
+    makeButton(this, W / 2 - 100, H - 120, 200, 56, '离　开', () => this.leave(), { size: 22 });
 
     audio.playBgm(this, 'bgm_map');
   }
@@ -123,6 +123,27 @@ export class ShopScene extends Phaser.Scene {
       size: 18, depth: DEPTH.scene + 3
     });
     it.btn = btn;
+    this.updateItemLabel(it);
+  }
+
+  updateItemLabel(it) {
+    const name = it.kind === 'card' ? cardName(it.card)
+      : it.kind === 'relic' ? RELICS[it.id].name
+      : it.kind === 'potion' ? POTIONS[it.id].name : '擦符（移除一张牌）';
+    const detail = it.kind === 'relic' ? RELICS[it.id].desc
+      : it.kind === 'potion' ? POTIONS[it.id].desc : '';
+    it.btn?.zone.setData('aiLabel', `${it.kind === 'remove' ? '' : '购买 '}${name} · ${it.price} 墨${detail ? ' · ' + detail : ''}`);
+    if (it.kind === 'card') it.btn?.zone.setData('aiCard', it.card);
+  }
+
+  refreshPrices() {
+    const discount = run.player.relics.includes('suanpan') ? 0.75 : 1;
+    this.items.forEach(it => {
+      if (it.bought || !Number.isFinite(it.basePrice)) return;
+      it.price = Math.round(it.basePrice * discount);
+      it.btn?.list[1]?.setText(`${it.price} 墨`);
+      this.updateItemLabel(it);
+    });
   }
 
   refreshGold() {
@@ -146,47 +167,61 @@ export class ShopScene extends Phaser.Scene {
     text(this, it.x + 100, it.y + 250, '已售', 20, {
       originX: 0.5, color: 'rgba(139,42,32,0.7)'
     }).setDepth(DEPTH.overlay);
+    this.refreshPrices();
     this.refreshGold();
   }
 
   buy(it) {
-    if (it.bought) return;
+    if (it.bought || this._picker || this._leaving) return;
     const p = run.player;
     if (p.gold < it.price) { this.notEnough(); return; }
 
     // 擦符：由玩家自己选，否则高价值牌会被随机擦掉
     if (it.kind === 'remove') { this.openRemove(it); return; }
 
-    p.gold -= it.price;
-    it.bought = true;
-    audio.sfx('coin');
-
+    // 获得物品成功后再扣墨，满药囊或重复法宝不能白白收费。
     if (it.kind === 'card') {
       p.deck.push(it.card);
       it.img.setTint(0x999080);
     } else if (it.kind === 'relic') {
-      run.grantRelic(it.id);
+      if (!run.grantRelic(it.id)) return;
     } else if (it.kind === 'potion') {
-      run.addPotion(it.id);
+      if (!run.addPotion(it.id)) return;
       audio.sfx('potion');
-    }
+    } else return;
+    p.gold -= it.price;
+    audio.sfx('coin');
     this.markSold(it);
   }
 
   openRemove(it) {
-    pickCard(this, {
+    if (it.bought || this._picker || this._leaving) return;
+    this._picker = pickCard(this, {
       cards: run.player.deck.slice(),
       title: '擦　符',
       subtitle: `支付 ${it.price} 墨，选一张符箓擦去`,
       emptyText: '已无可擦之符',
       onPick: (card) => {
-        run.player.gold -= it.price;
+        this._picker = null;
+        if (it.bought || this._leaving) return;
         const idx = run.player.deck.indexOf(card);
-        if (idx >= 0) run.player.deck.splice(idx, 1);
+        if (idx < 0) return;
+        if (run.player.gold < it.price) { this.notEnough(); return; }
+        run.player.gold -= it.price;
+        run.player.deck.splice(idx, 1);
         audio.sfx('coin');
         this.markSold(it);
       },
-      onCancel: () => { }
+      onCancel: () => { this._picker = null; }
     });
+  }
+
+  leave() {
+    if (this._leaving || this._picker) return;
+    this._leaving = true;
+    this.input.enabled = false;
+    if (run.map && run.map.cur.node) run.map.cur.node.cleared = true;
+    this.cameras.main.fadeOut(350, 20, 17, 14);
+    this.time.delayedCall(380, () => this.scene.start('Map'));
   }
 }

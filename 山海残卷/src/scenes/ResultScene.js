@@ -10,9 +10,10 @@ import { inkTransition } from '../core/fx.js';
 export class ResultScene extends Phaser.Scene {
   constructor() { super('Result'); }
 
-  init(data) { this.win = !!(data && data.win); }
+  init(data) { this.win = !!(data && data.win); this._leaving = false; }
 
   create() {
+    this.input.enabled = true;
     this.cameras.main.fadeIn(600, 20, 17, 14);
     this.add.rectangle(W / 2, H / 2, W, H, 0x12100c).setDepth(DEPTH.bg);
 
@@ -30,7 +31,7 @@ export class ResultScene extends Phaser.Scene {
     const score = run.score();
     const depth = run.depth;
     const stats = [
-      ['抵达', `${Math.floor(depth / 10) || 1} 卷 · 第 ${(depth % 10) + 1} 层`],
+      ['抵达', run.depthLabel(depth)],
       ['击杀', `${run.stats.kills} 只`],
       ['出牌', `${run.stats.cardsPlayed} 张`],
       ['伤害', `${Math.round(run.stats.damage)}`],
@@ -61,22 +62,28 @@ export class ResultScene extends Phaser.Scene {
       }).setDepth(DEPTH.scene + 1);
     }
 
-    makeButton(this, W / 2 - 240, H - 130, 220, 56, '再　入　卷', () => {
-      // 必须重开一局：只清 map 会沿用 0 血/旧牌组的角色
+    makeButton(this, W / 2 - 240, H - 130, 220, 56, '再　入　卷', () => this.leave(true), { size: 22 });
+    makeButton(this, W / 2 + 20, H - 130, 220, 56, '回　山　门', () => this.leave(false), { size: 20, font: FONT.hei });
+
+    audio.stopBgm();
+    audio.sfx('lose');
+  }
+
+  leave(restart) {
+    if (this._leaving) return;
+    this._leaving = true;
+    this.input.enabled = false;
+    if (restart) {
+      // 必须重开一局，且同一转场只创建一次。
       run.newRun();
       run._actIntroShown = false;
       run._mapIntroPending = true;
       inkTransition(this, () => this.scene.start('Map', { fresh: true }));
-    }, { size: 22 });
-
-    makeButton(this, W / 2 + 20, H - 130, 220, 56, '回　山　门', () => {
+    } else {
       run.active = false;
       run.map = null;
       run._actIntroShown = false;
       inkTransition(this, () => this.scene.start('Title'));
-    }, { size: 20, font: FONT.hei });
-
-    audio.stopBgm();
-    audio.sfx('lose');
+    }
   }
 }

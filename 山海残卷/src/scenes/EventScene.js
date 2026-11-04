@@ -135,6 +135,7 @@ export class EventScene extends Phaser.Scene {
       const btn = makeButton(this, bx, y, bw, 64, '', () => this.choose(opt), {
         size: 22, depth: DEPTH.scene + 2
       });
+      btn.zone.setData('aiLabel', `${opt.label}${opt.hint ? ' · ' + opt.hint : ''}`);
       // 序号：一 / 二 / 三，朱砂
       const num = text(this, bx + 30, y + 32, NUM[i] || '·', 19, {
         font: FONT.song, color: 'rgba(139,42,32,0.85)', originY: 0.5, depth: DEPTH.scene + 3

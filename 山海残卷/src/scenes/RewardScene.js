@@ -19,9 +19,11 @@ export class RewardScene extends Phaser.Scene {
     this.isTreasure = !!(data && data.treasure);
     this.potion = (data && data.potion) || null;
     this.picked = false;
+    this._treasureGranted = false;
   }
 
   create() {
+    this.input.enabled = true;
     this.cameras.main.fadeIn(400, 20, 17, 14);
     this.add.rectangle(W / 2, H / 2, W, H, 0xefe6d4).setDepth(DEPTH.bg);
     const g = this.add.graphics().setDepth(DEPTH.bg + 1);
@@ -78,6 +80,8 @@ export class RewardScene extends Phaser.Scene {
   }
 
   showTreasure() {
+    if (this._treasureGranted) return;
+    this._treasureGranted = true;
     text(this, W / 2, 140, '拾　遗', 52, { originX: 0.5, color: PAL.ink });
 
     const relicId = rollRelic(run.player.relics);
@@ -94,9 +98,13 @@ export class RewardScene extends Phaser.Scene {
       burst(this, W / 2, 360, { kind: 'gold', count: 24, speed: 200, life: 900, add: true });
     }
 
+    if (run.map?.cur.node) run.map.cur.node.cleared = true;
     text(this, W / 2, 540, `获得 ${gold} 墨`, 22, { originX: 0.5, font: FONT.mono, color: PAL.gold });
 
     makeButton(this, W / 2 - 110, 620, 220, 58, '收　起', () => {
+      if (this.picked) return;
+      this.picked = true;
+      this.input.enabled = false;
       this.cameras.main.fadeOut(350, 20, 17, 14);
       this.time.delayedCall(380, () => this.scene.start('Map'));
     }, { size: 24 });

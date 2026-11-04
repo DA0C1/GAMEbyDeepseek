@@ -11,9 +11,10 @@ import { codexPercent } from '../data/codex.js';
 export class TitleScene extends Phaser.Scene {
   constructor() { super('Title'); }
 
-  init() { this._rules = null; }
+  init() { this._rules = null; this._leaving = false; }
 
   create() {
+    this.input.enabled = true;
     this.cameras.main.fadeIn(600, 20, 17, 14);
 
     if (this.textures.exists('bg_title')) {
@@ -59,25 +60,18 @@ export class TitleScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(DEPTH.scene + 1);
 
     // 按钮
-    makeButton(this, W / 2 - 150, 400, 300, 62, '展　卷', () => {
-      run.newRun();
-      run._actIntroShown = false;
-      // 初次入卷者先读序章，再入第一卷
-      const first = !!save.data.firstRun;
-      if (first) { save.data.firstRun = false; save.write(); }
-      this.cameras.main.fadeOut(420, 20, 17, 14);
-      this.time.delayedCall(440, () => {
-        if (first) this.scene.start('Story', { kind: 'prologue' });
-        else { run._mapIntroPending = true; this.scene.start('Map', { fresh: true }); }
-      });
-    }, { size: 30 });
+    makeButton(this, W / 2 - 150, 400, 300, 62, '展　卷', () => this.startRun(), { size: 30 });
 
     makeButton(this, W / 2 - 150, 486, 144, 50, '心　法', () => {
+      if (this._leaving) return;
       this.scene.launch('Settings', { from: 'Title' });
       this.scene.pause();
     }, { size: 20, font: FONT.hei });
 
     makeButton(this, W / 2 + 6, 486, 144, 50, '图　鉴', () => {
+      if (this._leaving) return;
+      this._leaving = true;
+      this.input.enabled = false;
       this.cameras.main.fadeOut(300, 20, 17, 14);
       this.time.delayedCall(310, () => this.scene.start('Codex'));
     }, { size: 20, font: FONT.hei });
@@ -115,6 +109,7 @@ export class TitleScene extends Phaser.Scene {
     keyTip.on('pointerover', () => { drawKeyRule(true); keyTip.setColor(PAL.cinnabar); audio.sfx('hover'); });
     keyTip.on('pointerout', () => { drawKeyRule(false); keyTip.setColor('rgba(139,42,32,0.82)'); });
     keyTip.on('pointerdown', () => {
+      if (this._leaving) return;
       audio.sfx('page');
       if (!this._rules) this._rules = openRules(this, { depth: DEPTH.overlay + 10, onClose: () => { this._rules = null; } });
       else { this._rules.close(); this._rules = null; }
@@ -146,6 +141,7 @@ export class TitleScene extends Phaser.Scene {
     };
     drawAscBox();
     ascT.on('pointerdown', () => {
+      if (this._leaving) return;
       save.data.ascension = ((save.data.ascension || 0) + 1) % (ASCENSION_MAX + 1);
       ascT.setText(`天命 ${save.data.ascension} 重 · ${ASC_FLAVOR[save.data.ascension]}　·　点击调整难度`);
       drawAscBox();
@@ -156,7 +152,7 @@ export class TitleScene extends Phaser.Scene {
     // 底部统计
     const d = save.data;
     text(this, 64, H - 56,
-      `入卷 ${d.runs} 次    ·    破卷 ${d.wins} 次    ·    最远 第 ${d.bestDepth || 0} 层    ·    最佳 ${d.bestScore || 0} 分    ·    图鉴 ${codexPercent(d)}%`,
+      `入卷 ${d.runs} 次    ·    破卷 ${d.wins} 次    ·    最远 ${run.depthLabel(d.bestDepth)}    ·    最佳 ${d.bestScore || 0} 分    ·    图鉴 ${codexPercent(d)}%`,
       14, { font: FONT.hei, color: 'rgba(58,52,44,0.66)' });
 
     text(this, W - 64, H - 56, 'v3.9.4  ·  点击或拖拽出牌', 13, {
@@ -184,6 +180,22 @@ export class TitleScene extends Phaser.Scene {
       if (this._rules) { this._rules.close(); this._rules = null; }
     });
     this.events.once('shutdown', () => { this._rules = null; });
+  }
+
+  startRun() {
+    if (this._leaving || this._rules) return;
+    this._leaving = true;
+    this.input.enabled = false;
+    run.newRun();
+    run._actIntroShown = false;
+    // 初次入卷者先读序章，再入第一卷
+    const first = !!save.data.firstRun;
+    if (first) { save.data.firstRun = false; save.write(); }
+    this.cameras.main.fadeOut(420, 20, 17, 14);
+    this.time.delayedCall(440, () => {
+      if (first) this.scene.start('Story', { kind: 'prologue' });
+      else { run._mapIntroPending = true; this.scene.start('Map', { fresh: true }); }
+    });
   }
 
   update(time, delta) {

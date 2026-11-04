@@ -16,6 +16,7 @@ export class RestScene extends Phaser.Scene {
     this.cameras.main.fadeIn(420, 20, 17, 14);
     this.done = false;
     this._leaving = false;
+    this._picker = null;
     const act = run.map ? run.map.act : { theme: 'dawn', index: 0 };
     const bgKey = this.textures.exists('bg_rest') ? 'bg_rest' : ('bg_act' + (act.index + 1));
     if (this.textures.exists(bgKey)) {
@@ -37,7 +38,7 @@ export class RestScene extends Phaser.Scene {
 
     const heal = Math.round(run.player.maxHp * 0.36);
     makeButton(this, x0, 268, bw, bh, '养　气', () => this.doHeal(heal), { size: 27 });
-    text(this, x0 + bw / 2, 382, `回复 ${heal} 点气血`, 19, {
+    text(this, x0 + bw / 2, 382, `回复 ${run.previewHeal(heal)} 点气血`, 19, {
       originX: 0.5, font: FONT.hei, color: PAL.ink2
     });
     text(this, x0 + bw / 2, 410, '稳妥，但不会让你变强', 14, {
@@ -72,7 +73,7 @@ export class RestScene extends Phaser.Scene {
   }
 
   doHeal(n) {
-    if (this.done) return;
+    if (this.done || this._leaving || this._picker) return;
     run.heal(n);
     burst(this, W / 2, 380, { kind: 'gold', count: 22, speed: 180, life: 900, add: true });
     audio.sfx('heal');
@@ -81,18 +82,20 @@ export class RestScene extends Phaser.Scene {
   }
 
   doUpgrade() {
-    if (this.done) return;
+    if (this.done || this._leaving || this._picker) return;
     const deck = run.player.deck.filter((c) => {
       const d = c.def || CARDS[c.id];
       return d && canUpgrade(c);
     });
-    pickCard(this, {
+    this._picker = pickCard(this, {
       cards: deck,
       title: '修　符',
       subtitle: '卡下写着升级前后的数值',
       emptyText: '已无可修之符',
       upgradePreview: true,
       onPick: (card) => {
+        this._picker = null;
+        if (this.done || this._leaving || !run.player.deck.includes(card) || !canUpgrade(card)) return;
         const diffs = upgradeDiff(card);
         card.up = true;
         audio.sfx('relic');
@@ -102,31 +105,33 @@ export class RestScene extends Phaser.Scene {
         this.showResult(`「${d.name}」${line ? line + '。' : ''}\n笔画重写，锋芒更盛。`);
         this.lock();
       },
-      onCancel: () => { }
+      onCancel: () => { this._picker = null; }
     });
   }
 
   doEngrave() {
-    if (this.done) return;
+    if (this.done || this._leaving || this._picker) return;
     const deck = run.player.deck.filter((c) => {
       const d = c.def || CARDS[c.id];
       return d && !c.rune && d.rarity !== 'curse';
     });
-    pickCard(this, {
+    this._picker = pickCard(this, {
       cards: deck,
       title: '铭　刻',
       subtitle: '选一张符箓，天授一枚篆文（随机）',
       emptyText: '每一张符箓都已刻满',
       onPick: (card) => {
+        this._picker = null;
+        if (this.done || this._leaving || !run.player.deck.includes(card) || card.rune) return;
         const rune = randomRune();
-        run.engrave(card, rune);
+        if (!run.engrave(card, rune)) return;
         const rd = RUNES[rune];
         audio.sfx('relic');
         burst(this, W / 2, 380, { kind: 'ink', count: 24, speed: 220, life: 900 });
         this.showResult(`朱笔落下，「${rd.full}」二字没入纸背。\n${rd.desc}`);
         this.lock();
       },
-      onCancel: () => { }
+      onCancel: () => { this._picker = null; }
     });
   }
 
@@ -156,7 +161,7 @@ export class RestScene extends Phaser.Scene {
   }
 
   leave() {
-    if (this._leaving) return;
+    if (this._leaving || this._picker) return;
     this._leaving = true;
     if (run.map && run.map.cur.node) run.map.cur.node.cleared = true;
     this.cameras.main.fadeOut(350, 20, 17, 14);

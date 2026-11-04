@@ -40,20 +40,23 @@ class CardView {
 
   setLayout(x, y, rot) {
     this.baseX = x; this.baseY = y; this.baseRot = rot;
-    if (!this.dragging && !this.hovered) {
+    if (!this.dragging && !this.hovered && this.scene.selected !== this) {
       this.x = x; this.y = y; this.rot = rot;
     }
   }
 
   apply() {
+    if (this.destroyed) return;
     this.container.x = this.x;
     this.container.y = this.y;
     this.container.rotation = this.rot;
     this.container.setScale(this.scale);
-    this.container.setDepth(this.dragging ? DEPTH.dragCard : (this.hovered ? DEPTH.cards + 5 : DEPTH.cards));
+    const raised = this.hovered || this.scene.selected === this;
+    this.container.setDepth(this.dragging ? DEPTH.dragCard : DEPTH.cards + (raised ? 10 : 0) + (this.order || 0) / 100);
   }
 
   hit(mx, my) {
+    if (this.destroyed || this.removing) return false;
     const dx = mx - this.x, dy = my - this.y;
     const cos = Math.cos(-this.rot), sin = Math.sin(-this.rot);
     const lx = dx * cos - dy * sin;
@@ -63,7 +66,10 @@ class CardView {
 
   /* 费用同步：刷新纹理（免费复制品跨回合转正）与可打性置灰 */
   updateState() {
-    const key = ensureCardTexture(this.scene, this.card);
+    if (this.destroyed) return;
+    const displayCost = this.battle && this.card.def.cost >= 0
+      ? this.battle.costOf(this.card, true) : undefined;
+    const key = ensureCardTexture(this.scene, this.card, displayCost);
     if (key && key !== this.img.texture.key) this.img.setTexture(key);
     const b = this.battle;
     const busy = this.dragging || this.hovered || this.scene.selected === this;
@@ -73,7 +79,11 @@ class CardView {
     if (dim) this.img.setTint(0x9a9285); else this.img.clearTint();
   }
 
-  destroy() { this.container.destroy(); }
+  destroy() {
+    if (this.destroyed) return;
+    this.destroyed = true;
+    this.container.destroy();
+  }
 }
 
 export class BattleScene extends Phaser.Scene {
@@ -194,6 +204,7 @@ export class BattleScene extends Phaser.Scene {
       audio.sfx('enemyTurn');
     });
     B.on('damage', ({ target, amount, isPlayer, el }) => {
+      if (!isPlayer) this.updateEnemyIntents();
       // 多段攻击的 damage 事件是同步连发的：按目标错峰滚出，
       // 数字/音效逐段可辨，不再同帧叠成一团
       const pv = isPlayer ? this.playerView : this.enemyViews.find((v) => v.foe === target);
@@ -372,6 +383,7 @@ export class BattleScene extends Phaser.Scene {
         }
       });
       this.updateEnemyTraits();
+      this.updateEnemyIntents();
     });
     B.on('enrage', ({ enemy, str }) => {
       const ev = this.enemyViews.find((v) => v.foe === enemy);
@@ -382,7 +394,8 @@ export class BattleScene extends Phaser.Scene {
       audio.sfx('bossWarn');
       this.updateEnemyTraits();
     });
-    B.on('draw', () => { this.refreshHand(); });
+    B.on('draw', () => { this.refreshHand(); this.refreshPiles(); });
+    B.on('discardAll', () => { this.refreshHand(); this.refreshPiles(); });
     B.on('energy', ({ amount }) => {
       this.drawEnergy();
       this.updateHandState();
@@ -395,10 +408,11 @@ export class BattleScene extends Phaser.Scene {
         audio.sfx('energy');
       }
     });
-    B.on('cardPlayed', ({ card }) => { this.refreshHand(); this.drawEnergy(); this.refreshPiles(); });
-    B.on('curse', () => this.refreshHand());
+    B.on('cardPlayed', ({ card }) => { this.refreshHand(); this.drawEnergy(); this.refreshPiles(); this.updateEnemyIntents(); });
+    B.on('curse', () => { this.refreshHand(); this.refreshPiles(); });
     B.on('turnStart', () => {
       this.updateHandState();
+      this.refreshPiles();
       // 重置打击反馈错峰链
       this.enemyViews.forEach((v) => { v.fxAt = 0; });
       if (this.playerView) this.playerView.fxAt = 0;
@@ -412,7 +426,12 @@ export class BattleScene extends Phaser.Scene {
       burst(this, 300, 520, { kind: 'gold', count: 8, speed: 150, life: 620, scale: 0.45 });
       audio.sfx('buff');
     });
-    B.on('potion', () => { this.drawPotions(); this.refreshPlayerHud(); this.refreshEnemyBars(); });
+    B.on('potion', () => {
+      this.drawPotions(); this.refreshPlayerHud(); this.refreshEnemyBars(); this.updateEnemyIntents();
+      this.updateHandState();
+      const activeCard = this.dragging || this.selected || this.hovered;
+      if (activeCard) this.showDamagePreview(activeCard.card);
+    });
     B.on('surge', ({ el, conf }) => this.playSurge(el, conf));
     B.on('win', () => this.onWin());
     B.on('lose', () => this.onLose());
@@ -605,9 +624,10 @@ export class BattleScene extends Phaser.Scene {
     this.hideIntentTip();
     const c = view.intent;
     c.removeAll(true);
-    const mv = view.foe.move;
-    if (!mv) return;
     const f = view.foe;
+    const forecast = this.battle.previewEnemyIntent(f);
+    const mv = forecast.move || (forecast.willDie ? { type: 'debuff' } : null);
+    if (!mv) return;
     const g = this.add.graphics();
     const r = 30;
     let col = 0x1d1a17;
@@ -622,7 +642,7 @@ export class BattleScene extends Phaser.Scene {
     g.strokeCircle(0, 0, r);
     c.add(g);
 
-    const iconKey = mv.type === 'attack' || mv.type === 'attack_debuff' ? 'sword'
+    const iconKey = forecast.willDie ? 'skull' : mv.type === 'attack' || mv.type === 'attack_debuff' ? 'sword'
       : mv.type === 'defend' ? 'shield'
         : mv.type === 'buff' ? 'star' : 'eye';
     // 用小纹理绘制图标
@@ -632,10 +652,12 @@ export class BattleScene extends Phaser.Scene {
       c.add(ic);
     }
 
-    let dmgText = '';
+    let dmgText = forecast.willDie ? '将亡' : '';
     if (mv.dmg) {
-      const base = this.battle.incomingDamage(Math.round((mv.dmg * (f.dmgMul || 1) + (f.buffs.str || 0)) * ((f.buffs.weak || 0) > 0 ? 0.75 : 1)));
-      dmgText = String(base) + (mv.hits > 1 ? '×' + mv.hits : '');
+      const hits = forecast.damageByHit;
+      dmgText = hits.every((value) => value === hits[0])
+        ? String(hits[0]) + (hits.length > 1 ? '×' + hits.length : '')
+        : hits.join('+');
     } else if (mv.block) {
       dmgText = '+' + mv.block;
     }
@@ -656,30 +678,36 @@ export class BattleScene extends Phaser.Scene {
     c.add(hit);
   }
 
-  intentTipLines(mv, f) {
+  intentTipLines(mv, f, forecast = this.battle.previewEnemyIntent(f)) {
+    if (forecast.willDie) return ['按当前状态，毒 / 灼烧将在行动前致死。', '前序行动可能改变结果。'];
     const out = [];
+    if (forecast.phaseChange) out.push('毒 / 灼烧将触发新阶段，意图已预演。');
     if (mv.dmg) {
-      const base = this.battle.incomingDamage(Math.round((mv.dmg * (f.dmgMul || 1) + (f.buffs.str || 0))
-        * ((f.buffs.weak || 0) > 0 ? 0.75 : 1)));
-      out.push('伤害 ' + base + (mv.hits > 1 ? ' × ' + mv.hits : ''));
+      const hits = forecast.damageByHit;
+      out.push('伤害 ' + (hits.every((value) => value === hits[0])
+        ? hits[0] + (hits.length > 1 ? ' × ' + hits.length : '')
+        : hits.join(' + ') + '（合计 ' + hits.reduce((sum, value) => sum + value, 0) + '）'));
     }
     if (mv.block) out.push('护甲 +' + mv.block);
     if (mv.playerBuff) out.push('使你' + ((BUFFS[mv.playerBuff[0]] || {}).name || mv.playerBuff[0]) + ' ' + mv.playerBuff[1]);
     if (mv.selfBuff) out.push('自身' + ((BUFFS[mv.selfBuff[0]] || {}).name || mv.selfBuff[0]) + ' +' + mv.selfBuff[1]);
     if (mv.special === 'curse') out.push('塞入一张诅咒');
+    out.push('按当前状态估算；前序行动可能改变结果。');
     return out;
   }
 
   showIntentTip(view) {
     this.hideIntentTip();
-    const mv = view.foe && view.foe.move;
-    if (!mv || !this.battle) return;
+    if (!view.foe || !this.battle) return;
+    const forecast = this.battle.previewEnemyIntent(view.foe);
+    const mv = forecast.move || (forecast.willDie ? { type: 'debuff', name: '毒灼将止行动' } : null);
+    if (!mv) return;
     const typeName = { attack: '攻', attack_debuff: '攻', defend: '守', buff: '势', debuff: '术' }[mv.type] || '行';
 
     const title = this.add.text(0, 0, `${typeName}　${mv.name}`, {
       fontFamily: FONT.song, fontSize: '19px', color: PAL.ink
     });
-    const bodyStr = this.intentTipLines(mv, view.foe).join('\n');
+    const bodyStr = this.intentTipLines(mv, view.foe, forecast).join('\n');
     const body = bodyStr ? this.add.text(0, 0, bodyStr, {
       fontFamily: FONT.hei, fontSize: '14px', color: 'rgba(58,52,44,0.82)', lineSpacing: 6
     }) : null;
@@ -883,7 +911,7 @@ export class BattleScene extends Phaser.Scene {
   refreshPlayerHud() {
     const p = run.player;
     if (this.playerHpBar) this.playerHpBar.set(p.hp, p.maxHp);
-    if (this.playerHpT) this.playerHpT.setText(`${p.hp} / ${p.maxHp}`);
+    if (this.playerHpT) this.playerHpT.setText(`${Math.max(0, p.hp)} / ${p.maxHp}`);
     if (this.blockT) {
       this.blockT.setText(p.block > 0 ? `护甲 ${p.block}` : '');
     }
@@ -937,6 +965,10 @@ export class BattleScene extends Phaser.Scene {
     const wanted = hand.slice();
     this.cardViews.slice().forEach((v) => {
       if (wanted.indexOf(v.card) < 0 && !v.removing) {
+        if (this.hovered === v) { this.hovered = null; this.hideDamagePreview(); }
+        if (this.dragging === v) { this.dragging = null; this.highlightTarget(null); }
+        if (this.selected === v) { this.selected = null; this.hideDamagePreview(); }
+        v.hovered = v.dragging = false;
         v.removing = true;
         this.tweens.add({
           targets: v.container, y: v.container.y + 80, alpha: 0, duration: 220,
@@ -974,14 +1006,17 @@ export class BattleScene extends Phaser.Scene {
     const step = Math.min(196, maxW / Math.max(1, n - 1));
     const cx = 800 - Math.max(0, Math.min(56, (n - 6) * 14));
     this.cardViews.forEach((v, i) => {
+      v.order = i;
       const off = i - (n - 1) / 2;
       const x = cx + off * step;
       const y = 712 + Math.abs(off) * 6;
       const rot = off * 0.028;
       v.setLayout(x, y, rot);
       if (!v.dragging && !v.hovered) {
+        this.tweens.killTweensOf(v);
+        const selected = this.selected === v;
         this.tweens.add({
-          targets: v, x, y, rot, scale: 1, duration: 180, ease: 'Cubic.easeOut',
+          targets: v, x, y: y - (selected ? 70 : 0), rot: selected ? 0 : rot, scale: selected ? 1.24 : 1, duration: 180, ease: 'Cubic.easeOut',
           onUpdate: () => v.apply()
         });
       }
@@ -1131,7 +1166,8 @@ export class BattleScene extends Phaser.Scene {
     g.fillCircle(x, y, 34);
     g.lineStyle(2, 0xb98f3f, 0.7);
     g.strokeCircle(x, y, 34);
-    const pct = Math.max(0, Math.min(1, p.energy / Math.max(1, p.energyMax)));
+    const energyMax = this.battle.energyMax();
+    const pct = Math.max(0, Math.min(1, p.energy / Math.max(1, energyMax)));
     if (pct > 0) {
       g.lineStyle(4, 0xb23a2e, 0.85);
       g.beginPath();
@@ -1139,7 +1175,7 @@ export class BattleScene extends Phaser.Scene {
       g.strokePath();
     }
     this.energyG = g;
-    this.energyT = text(this, x, y, `${p.energy}/${p.energyMax}`, 21, {
+    this.energyT = text(this, x, y, `${p.energy}/${energyMax}`, 21, {
       font: FONT.mono, color: PAL.ink, originX: 0.5, originY: 0.5
     }).setDepth(DEPTH.hud + 1);
 
@@ -1245,17 +1281,25 @@ export class BattleScene extends Phaser.Scene {
 
       // 底衬：克制时描边换成目标被克的那一行的颜色
       const plate = this.add.graphics().setDepth(DEPTH.tooltip - 1);
-      plate.fillStyle(lethal ? 0x8b2a20 : 0xfdfaf3, lethal ? 0.92 : 0.88);
-      plate.fillRoundedRect(x - 46, y - 34, 92, 68, 8);
-      plate.lineStyle(em.rel > 0 ? 2 : 1.5, lethal ? 0xfdfaf3 : (em.rel > 0 ? keHex : 0xb23a2e), em.rel > 0 ? 0.85 : 0.6);
-      plate.strokeRoundedRect(x - 46, y - 34, 92, 68, 8);
+      let plateTop = y - 34;
+      const paintPlate = (height) => {
+        plate.clear();
+        plate.fillStyle(lethal ? 0x8b2a20 : 0xfdfaf3, lethal ? 0.92 : 0.88);
+        plate.fillRoundedRect(x - 114, plateTop, 228, height, 8);
+        plate.lineStyle(em.rel > 0 ? 2 : 1.5, lethal ? 0xfdfaf3 : (em.rel > 0 ? keHex : 0xb23a2e), em.rel > 0 ? 0.85 : 0.6);
+        plate.strokeRoundedRect(x - 114, plateTop, 228, height, 8);
+      };
+      paintPlate(68);
       this.dmgPreview.push(plate);
 
-      const main = this.add.text(x, y - 2, pv.pureOnly ? '＋' + pv.total : String(pv.total), {
-        fontFamily: FONT.mono, fontSize: pv.pureOnly ? '40px' : '52px', fontStyle: 'bold',
+      const main = this.add.text(x, y - 2, pv.uncertain ? '≈' + pv.total : pv.pureOnly ? '＋' + pv.total : String(pv.total), {
+        fontFamily: FONT.mono, fontSize: pv.uncertain ? '34px' : pv.pureOnly ? '40px' : '52px', fontStyle: 'bold',
         color: lethal ? '#fdfaf3' : '#b23a2e'
       }).setOrigin(0.5).setDepth(DEPTH.tooltip);
       this.dmgPreview.push(main);
+      plateTop = Math.min(plateTop, y - 2 - main.height / 2 - 8);
+      const subtitleY = Math.max(y + 24, y - 2 + main.height / 2 + 4);
+      paintPlate(Math.max(y + 34, y - 2 + main.height / 2 + 10) - plateTop);
 
       const frag = [];
       if (em.rel > 0 && ELEMENTS[em.el] && ELEMENTS[em.foeEl]) {
@@ -1263,23 +1307,29 @@ export class BattleScene extends Phaser.Scene {
       } else if (em.rel < 0 && ELEMENTS[em.el] && ELEMENTS[em.foeEl]) {
         frag.push('被克 · ' + ELEMENTS[em.foeEl].name + '克' + ELEMENTS[em.el].name);
       }
-      if (pv.hits > 1) frag.push(pv.per + ' × ' + pv.hits);
+      if (pv.randomTarget) frag.push('随机分配 · 示例');
+      else if (pv.uncertain) frag.push('可能闪避 · 示例');
+      if (pv.playerDefeated) frag.push('自损 / 反噬致败');
+      if (pv.hits > 1) frag.push(pv.damageByHit?.every((value) => value === pv.per)
+        ? pv.per + ' × ' + pv.hits : '共 ' + pv.hits + ' 段');
       if (pv.blocked > 0) frag.push('挡 ' + pv.blocked + ' → ' + pv.effective);
       if (pv.surge) {
         frag.push(pv.surge.dmg
           ? `成势 +${pv.surge.dmg}`
-          : `成势 · ${pv.surge.conf.name}${pv.surge.el === 'mu' ? '群毒' : pv.surge.el === 'huo' ? '群烧' : pv.surge.el === 'shui' ? '护甲' : '抽牌'}`);
+          : `成势 · ${pv.surge.conf.name}${pv.surge.el === 'jin' ? '群伤' : pv.surge.el === 'mu' ? '群毒' : pv.surge.el === 'huo' ? '群烧' : pv.surge.el === 'shui' ? '护甲' : '抽牌'}`);
       }
       if (frag.length) {
-        const sub = this.add.text(x, y + 24, frag.join('  '), {
-          fontFamily: FONT.hei, fontSize: '13px',
+        const sub = this.add.text(x, subtitleY, frag.join('  '), {
+          fontFamily: FONT.hei, fontSize: '13px', align: 'center', lineSpacing: 2,
+          wordWrap: { width: 208, useAdvancedWrap: true },
           color: lethal ? 'rgba(253,250,243,0.92)' : 'rgba(139,42,32,0.9)'
-        }).setOrigin(0.5).setDepth(DEPTH.tooltip);
+        }).setOrigin(0.5, 0).setDepth(DEPTH.tooltip);
+        paintPlate(subtitleY + sub.height + 10 - plateTop);
         this.dmgPreview.push(sub);
       }
 
       if (!lethal && em.rel > 0) {
-        const kt = this.add.text(x, y - 44, '克', {
+        const kt = this.add.text(x, plateTop - 10, '克', {
           fontFamily: FONT.song, fontSize: '18px', color: '#fdfaf3',
           backgroundColor: '#' + keHex.toString(16).padStart(6, '0'), padding: { x: 7, y: 1 }
         }).setOrigin(0.5).setDepth(DEPTH.tooltip);
@@ -1287,7 +1337,7 @@ export class BattleScene extends Phaser.Scene {
       }
 
       if (lethal) {
-        const seal = this.add.text(x, y - 44, '斩', {
+        const seal = this.add.text(x, plateTop - 10, '斩', {
           fontFamily: FONT.song, fontSize: '22px', color: '#fdfaf3',
           backgroundColor: 'rgba(139,42,32,0.9)', padding: { x: 6, y: 2 }
         }).setOrigin(0.5).setDepth(DEPTH.tooltip);
@@ -1311,7 +1361,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   showPause() {
-    if (this._pauseLayer) return;
+    if (this._pauseLayer || this._ended || ['won', 'lost'].includes(this.battle?.phase)) return;
     this.cancelCardInteraction();
     if (this._codex) { this._codex.close(); this._codex = null; }
     this.hideDamagePreview();
@@ -1350,12 +1400,12 @@ export class BattleScene extends Phaser.Scene {
       this.scene.pause();
     }, { size: 18, font: FONT.hei });
     mk(588, '放弃本局', () => {
-      this.scene.start('Result', { win: false, abandon: true });
+      this.onEnd('lose');
     }, { size: 18, color: PAL.cinnabar });
 
-    this.add.text(W / 2, 700, 'ESC 或点击「继续」返回战斗', {
+    layer.add(this.add.text(W / 2, 700, 'ESC 或点击「继续」返回战斗', {
       fontFamily: FONT.hei, fontSize: '15px', color: 'rgba(202,191,169,0.62)'
-    }).setOrigin(0.5).setDepth(DEPTH.overlay + 31);
+    }).setOrigin(0.5).setDepth(DEPTH.overlay + 31));
 
     this._pauseLayer = layer;
   }
@@ -1428,25 +1478,30 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
 
-    // 从后往前找卡牌（上层优先）
-    for (let i = this.cardViews.length - 1; i >= 0; i--) {
-      const v = this.cardViews[i];
-      if (v.hit(mx, my)) {
-        if (!this.battle.canPlay(v.card)) {
-          this.floatText(v.x, v.y - 160, '灵力不足', PAL.ink4, 20);
-          audio.sfx('debuff');
-          return;
-        }
-        v.dragging = true;
-        this.dragging = v;
-        this.dragStartX = mx;
-        this.dragStartY = my;
-        v.container.setDepth(DEPTH.dragCard);
-        v.updateState();
-        audio.sfx('draw');
-        return;
-      }
+    const v = this.cardAt(mx, my);
+    if (!v) return;
+    if (!this.battle.canPlay(v.card)) {
+      this.floatText(v.x, v.y - 160, v.card.def.unplayable ? '无法打出' : '灵力不足', PAL.ink4, 20);
+      audio.sfx('debuff');
+      return;
     }
+    this.tweens.killTweensOf(v);
+    v.dragging = true;
+    this.dragging = v;
+    this.dragStartX = mx;
+    this.dragStartY = my;
+    v.container.setDepth(DEPTH.dragCard);
+    v.updateState();
+    audio.sfx('draw');
+  }
+
+  cardAt(mx, my) {
+    let top = null, depth = -Infinity;
+    this.cardViews.forEach(v => {
+      const renderedDepth = v.container.depth || 0;
+      if (v.hit(mx, my) && renderedDepth >= depth) { top = v; depth = renderedDepth; }
+    });
+    return top;
   }
 
   onPointerMove(pointer) {
@@ -1465,18 +1520,16 @@ export class BattleScene extends Phaser.Scene {
     }
     if (this.uiLocked) return;
     // 悬停
-    let hover = null;
-    for (let i = this.cardViews.length - 1; i >= 0; i--) {
-      const v = this.cardViews[i];
-      if (v.hit(mx, my)) { hover = v; break; }
-    }
+    const hover = this.cardAt(mx, my);
     if (hover !== this.hovered) {
       if (this.hovered) {
         const h = this.hovered;
         h.hovered = false;
         h.updateState();
         this.hideDamagePreview();
-        this.tweens.add({ targets: h, scale: 1, y: h.baseY, rot: h.baseRot, duration: 160, onUpdate: () => h.apply() });
+        this.tweens.killTweensOf(h);
+        const selected = this.selected === h;
+        this.tweens.add({ targets: h, scale: selected ? 1.24 : 1, y: h.baseY - (selected ? 70 : 0), rot: selected ? 0 : h.baseRot, duration: 160, onUpdate: () => h.apply() });
       }
       this.hovered = hover;
       if (hover) {
@@ -1484,6 +1537,7 @@ export class BattleScene extends Phaser.Scene {
         hover.updateState();
         this.showDamagePreview(hover.card);
         audio.sfx('hover');
+        this.tweens.killTweensOf(hover);
         this.tweens.add({
           targets: hover, scale: 1.24, y: hover.baseY - 70, rot: 0, duration: 170,
           ease: 'Cubic.easeOut', onUpdate: () => hover.apply()
@@ -1513,6 +1567,7 @@ export class BattleScene extends Phaser.Scene {
         this.selected = v;
         this.floatText(W / 2, 470, '点选目标', PAL.cinnabar, 22);
         this.showDamagePreview(v.card);
+        this.tweens.killTweensOf(v);
         this.tweens.add({ targets: v, scale: 1.24, y: v.baseY - 70, rot: 0, duration: 150, onUpdate: () => v.apply() });
         return;
       }
@@ -1531,7 +1586,14 @@ export class BattleScene extends Phaser.Scene {
   }
 
   returnCard(v) {
+    if (v.destroyed || v.removing) return;
     v.hovered = false;
+    if (this.hovered === v) this.hovered = null;
+    if (this.selected === v) this.selected = null;
+    this.hideDamagePreview();
+    v.updateState();
+    this.tweens.killTweensOf(v);
+    v.apply();
     this.tweens.add({
       targets: v, x: v.baseX, y: v.baseY, rot: v.baseRot, scale: 1,
       duration: 220, ease: 'Back.easeOut', onUpdate: () => v.apply()
@@ -1542,11 +1604,16 @@ export class BattleScene extends Phaser.Scene {
     if (this.selected) this.hideDamagePreview();
     const prev = this.selected;
     this.selected = null;
-    if (prev && !prev.removing) prev.updateState();
+    if (prev && !prev.removing) {
+      prev.updateState();
+      prev.apply();
+      if (prev !== this.hovered && !prev.dragging) this.returnCard(prev);
+    }
   }
 
   playCard(v, foe) {
-    if (this.isInputBlocked()) return;
+    if (this.isInputBlocked() || !v || v.removing) return;
+    if (!this.battle.canPlay(v.card) || !this.battle.hand.includes(v.card)) { this.returnCard(v); return; }
     // 攻击牌：先落一道笔势弧线、守卷人前倾，让「打出去」先于「掉血」出现
     if (v.card.def.type === 'attack' && this.playerView) {
       const ev = foe
@@ -1567,8 +1634,21 @@ export class BattleScene extends Phaser.Scene {
         });
       }
     }
+    // 先把飞出的视图与手牌解绑。出牌事件中的抽牌/回响会立即刷新手牌，
+    // 返回的同一张逻辑牌必须获得新视图，不能在旧视图动画结束时一起销毁。
+    this.tweens.killTweensOf(v);
+    const viewIndex = this.cardViews.indexOf(v);
+    if (viewIndex >= 0) this.cardViews.splice(viewIndex, 1);
+    v.removing = true;
     const ok = this.battle.playCard(v.card, foe);
-    if (!ok) { this.returnCard(v); return; }
+    if (!ok) {
+      v.removing = false;
+      if (viewIndex >= 0) this.cardViews.splice(viewIndex, 0, v);
+      this.returnCard(v);
+      return;
+    }
+    if (this.hovered === v) this.hovered = null;
+    if (this.dragging === v) this.dragging = null;
     this.hideDamagePreview();
     this.clearSelection();
     // 卡牌飞向目标
@@ -1689,6 +1769,10 @@ export class BattleScene extends Phaser.Scene {
   onEnd(result) {
     if (this._ended) return;
     this._ended = true;
+    // 胜败与主动退出都应保留本场统计，且只能计入一次。
+    const b = this.battle;
+    run.stats.damage += b.damageDealt;
+    run.stats.cardsPlayed += b.cardsPlayed;
     if (result === 'lose') {
       this.scene.start('Result', { win: false });
       return;
@@ -1696,10 +1780,7 @@ export class BattleScene extends Phaser.Scene {
     // 胜利结算
     const node = run.map ? run.map.cur.node : null;
     if (node) node.cleared = true;
-    const b = this.battle;
     run.player.gold += b.bonusGold;
-    run.stats.damage += b.damageDealt;
-    run.stats.cardsPlayed += b.cardsPlayed;
     if (this.nodeType === 'elite') run.stats.elites++;
     if (b.outHeal > 0) run.heal(b.outHeal);
 
@@ -1775,7 +1856,10 @@ export class BattleScene extends Phaser.Scene {
   }
 
   update(time, delta) {
-    if (this.battle) this.battle.update(delta / 1000);
+    // 浮层只暂停战斗时钟，场景仍渲染菜单；不能在暂停背后承受敌人伤害。
+    if (this.battle && !this._pauseLayer && !this._rules && !this._codex && !this._dialogue) {
+      this.battle.update(delta / 1000);
+    }
     if (this.lyricsView) {
       const bgm = audio.bgm;
       this.lyricsView.update(bgm && bgm.isPlaying ? bgm.seek : -1);

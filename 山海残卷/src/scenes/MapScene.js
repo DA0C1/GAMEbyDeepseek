@@ -79,6 +79,8 @@ export class MapScene extends Phaser.Scene {
     audio.playBgm(this, 'bgm_map');
 
     if (this.fresh || !run._actIntroShown) {
+      // 等待开场淡入的 300ms 也属于引言，不能抢先点击路线。
+      this._introOpen = true;
       run._actIntroShown = true;
       this.time.delayedCall(300, () => this.showIntro());
     }
@@ -93,6 +95,7 @@ export class MapScene extends Phaser.Scene {
     });
     const toggleRules = (e) => {
       if (e && e.preventDefault) e.preventDefault();
+      if (this._introOpen || this._entering) return;
       if (this._rules) { this._rules.close(); this._rules = null; }
       else this._rules = openRules(this, { onClose: () => { this._rules = null; } });
     };
@@ -330,12 +333,14 @@ export class MapScene extends Phaser.Scene {
 
     makeButton(this, W - 250, H - 172, 180, 46, '牌　组', () => this.toggleDeck(), { size: 19 });
     makeButton(this, 40, 40, 92, 36, '要　诀', () => {
+      if (this._introOpen || this._entering) return;
       if (this._rules) { this._rules.close(); this._rules = null; }
       else this._rules = openRules(this, { onClose: () => { this._rules = null; } });
     }, { size: 15 });
   }
 
   toggleDeck() {
+    if (this._entering) return;
     if (this._deckPanel) {
       this._deckPanel.close();
       return;

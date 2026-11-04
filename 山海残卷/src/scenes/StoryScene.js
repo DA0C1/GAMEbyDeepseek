@@ -17,9 +17,11 @@ export class StoryScene extends Phaser.Scene {
   init(data) {
     this.kind = (data && data.kind) || 'act';
     this.page = data && data.page;
+    this._leaving = false;
   }
 
   create() {
+    this.input.enabled = true;
     this.cameras.main.fadeIn(700, 20, 17, 14);
     this.add.rectangle(W / 2, H / 2, W, H, 0x12100c).setDepth(DEPTH.bg);
 
@@ -214,7 +216,12 @@ export class StoryScene extends Phaser.Scene {
   }
 
   continueBtn(label, cb) {
-    const btn = makeButton(this, W / 2 - 130, H - 140, 260, 60, label, cb, {
+    const btn = makeButton(this, W / 2 - 130, H - 140, 260, 60, label, () => {
+      if (this._leaving) return;
+      this._leaving = true;
+      this.input.enabled = false;
+      cb();
+    }, {
       size: 22, depth: DEPTH.scene + 2
     });
     btn.setAlpha(0);

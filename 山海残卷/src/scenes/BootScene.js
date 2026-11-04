@@ -10,16 +10,13 @@ export class BootScene extends Phaser.Scene {
 
   create() {
     save.load();
+    save.installPersistence();
     this.buildUiTextures();
     ensureTextures(this);
 
-    // 音效需要一次用户交互后才能启动
-    const unlock = () => {
-      audio.ensure();
-      audio.setVolumes();
-    };
-    this.input.on('pointerdown', unlock);
-    this.input.keyboard.on('keydown', unlock);
+    // 全页面的真实交互负责解锁，切换场景后仍然有效。
+    audio.installUnlock();
+    this.game?.events?.once('destroy', () => { audio.removeUnlock(); audio.stopBgm(); save.write(); save.removePersistence(); });
 
     this.scene.start('Preload');
   }
