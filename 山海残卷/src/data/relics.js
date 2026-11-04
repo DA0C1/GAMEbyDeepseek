@@ -274,9 +274,13 @@ export const RELICS = {
     name: '离焰', icon: 'star', rarity: 'uncommon', set: 'fire',
     desc: '每回合第一次施加灼烧时，抽 1 张牌。',
     hooks: {
-      turnStart(B, s) { s.used = false; },
       applyBuff(B, s, target, name) {
-        if (name === 'burn' && target !== B.player && !s.used) { s.used = true; B.draw(1); }
+        // 火种会在首回合开始阶段施加灼烧；不能被稍后的 turnStart
+        // 重置成同一回合第二次机会，也不改变其他法宝的回合初顺序。
+        if (name === 'burn' && target !== B.player && s.usedTurn !== B.turn) {
+          s.usedTurn = B.turn;
+          B.draw(1);
+        }
       }
     }
   },

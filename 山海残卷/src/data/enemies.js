@@ -15,7 +15,7 @@ export function traitTags(def) {
   if (tr.dodge) out.push('闪身 ' + Math.round(tr.dodge * 100) + '%');
   if (tr.evasion) out.push('幻影 ' + Math.round(tr.evasion * 100) + '%');
   if (tr.firstHitHalved) out.push('卸力');
-  if (tr.immune) out.push('免疫' + tr.immune.map((x) => ({ poison: '毒', burn: '火' }[x] || x)).join('/'));
+  if (tr.immune) out.push('免疫' + tr.immune.map((x) => ({ poison: '毒', burn: '火', weak: '虚弱' }[x] || x)).join('/'));
   if (tr.enrage) out.push('狂暴');
   if (tr.regen) out.push('自愈');
   if (tr.lifesteal) out.push('噬血');
